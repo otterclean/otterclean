@@ -1,6 +1,8 @@
 import os
 import shutil
+import curses
 from utils.file_system import get_directory_size, human_readable_size
+from ui.components import ProgressBar, DialogBox
 
 
 def perform_cleanup(option):
@@ -88,3 +90,49 @@ def clear_temp_files(temp_dirs):
             cleared_sizes[dir_path] = human_readable_size(size_before)
 
     return cleared_sizes
+
+
+def clean_selected_app_caches(layout):
+    cache_dir = os.path.expanduser("~/Library/Caches")
+    app_caches = []
+
+    for item in os.listdir(cache_dir):
+        full_path = os.path.join(cache_dir, item)
+        if os.path.isdir(full_path):
+            size = get_directory_size(full_path)
+            app_caches.append((full_path, human_readable_size(size)))
+
+    selected_caches = []
+    current_selection = 0
+
+    while True:
+        layout.display_app_caches(
+            app_caches, current_selection, selected_caches)
+
+        key = layout.stdscr.getch()
+
+        if key == curses.KEY_UP and current_selection > 0:
+            current_selection -= 1
+        elif key == curses.KEY_DOWN and current_selection < len(app_caches) - 1:
+            current_selection += 1
+        elif key == ord(' '):
+            if current_selection in selected_caches:
+                selected_caches.remove(current_selection)
+            else:
+                selected_caches.append(current_selection)
+        elif key == ord('\n'):
+            break
+        elif key == ord('q'):
+            return
+        elif key == curses.KEY_LEFT:
+            return  # Sol menüye dön
+
+    # Perform cleanup
+    for index in selected_caches:
+        path, _ = app_caches[index]
+        try:
+            shutil.rmtree(path)
+        except Exception as e:
+            layout.display_error(f"Error cleaning {path}: {str(e)}")
+
+    layout.display_message("Selected caches have been cleaned.")

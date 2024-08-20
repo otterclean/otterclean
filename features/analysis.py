@@ -15,9 +15,11 @@ def analyze_disk_usage(directories):
     usage_report = {}
 
     for dir_path in directories:
-        if os.path.exists(dir_path):
+        if os.path.exists(dir_path) and os.access(dir_path, os.R_OK):
             size = get_directory_size(dir_path)
             usage_report[dir_path] = human_readable_size(size)
+        else:
+            usage_report[dir_path] = "Permission denied or directory doesn't exist"
 
     return usage_report
 

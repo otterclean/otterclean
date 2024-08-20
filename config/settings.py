@@ -25,13 +25,13 @@ PROCESS_TIMEOUTS = {
 
 # Application color scheme (matches with the color pairs defined in colors.py)
 COLOR_SCHEME = {
-    "default": 1,       # Default text color
-    "highlight": 2,     # Highlighted item color (used for selected menu items)
-    "header": 3,        # Header color
-    "error": 4,         # Error message color
-    "info": 5,          # Informational message color
-    "warning": 6,       # Warning message color
-    "menu": 8           # Menu background color
+    "default": 1,
+    "highlight": 2,
+    "header": 3,
+    "error": 4,
+    "info": 5,
+    "warning": 6,
+    "menu": 8
 }
 
 # Other constants used throughout the application

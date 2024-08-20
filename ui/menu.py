@@ -18,30 +18,21 @@ class MainMenu:
         self.window_height, self.window_width = self.stdscr.getmaxyx()
 
     def render(self):
-        """
-        Renders the menu on the screen. It highlights the currently selected option.
-        """
-        # Calculate the displayable area, accounting for borders, padding, etc.
-        max_y = self.window_height - 6
-
-        # Determine the range of options to display based on the current scroll position
+        max_y = self.window_height - 5
         display_range = range(self.scroll_offset, min(
             self.scroll_offset + max_y, len(self.options)))
 
-        # Render each menu option
         for idx, option in enumerate(self.options[self.scroll_offset:self.scroll_offset + max_y]):
-            y = 3 + idx
+            y = 1 + idx
             if idx + self.scroll_offset == self.current_option:
-                # Highlight the selected option
                 self.stdscr.attron(curses.color_pair(
                     COLOR_SCHEME['highlight']))
-                self.stdscr.addstr(y, 2, option)
+                self.stdscr.addstr(y, 2, option[:self.window_width // 3 - 4])
                 self.stdscr.attroff(curses.color_pair(
                     COLOR_SCHEME['highlight']))
             else:
-                # Render other options with normal text color
                 self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
-                self.stdscr.addstr(y, 2, option)
+                self.stdscr.addstr(y, 2, option[:self.window_width // 3 - 4])
                 self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['default']))
 
     def navigate(self, direction):

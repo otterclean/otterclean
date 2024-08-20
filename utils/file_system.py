@@ -17,7 +17,11 @@ def get_directory_size(directory):
             fp = os.path.join(dirpath, f)
             # Skip if it is symbolic link
             if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
+                try:
+                    total_size += os.path.getsize(fp)
+                except (PermissionError, OSError):
+                    # Skip files that can't be accessed
+                    continue
 
     return total_size
 
