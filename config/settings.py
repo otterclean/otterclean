@@ -1,42 +1,43 @@
-# settings.py
-
-# Uygulama Başlığı
+# Application Title
 APP_TITLE = "Clean My System TUI"
 
-# Versiyon bilgisi
+# Version Information
 APP_VERSION = "1.0.0"
 
-# Menüdeki öğe sayısı
+# Number of items in the menu
 MENU_ITEM_COUNT = 13
 
-# Terminalin minimum genişlik ve yükseklik değerleri
+# Minimum terminal width and height requirements
 MIN_TERMINAL_WIDTH = 80
 MIN_TERMINAL_HEIGHT = 24
 
-# Disk analiz raporları için format ayarları
+# Disk analysis report format settings
 DISK_ANALYSIS_FORMAT = {
-    "size_unit": "GB",  # Boyutları GB cinsinden göster
-    "precision": 2      # Virgülden sonra 2 basamak göster
+    "size_unit": "GB",  # Display sizes in GB
+    "precision": 2      # Show 2 decimal places after the point
 }
 
-# İşlemlerin yapılma süre sınırları (saniye cinsinden)
+# Timeouts for different processes (in seconds)
 PROCESS_TIMEOUTS = {
-    "cleanup": 300,     # Temizlik işlemleri için maksimum süre: 5 dakika
-    "analysis": 120     # Disk analizi için maksimum süre: 2 dakika
+    "cleanup": 300,     # Maximum duration for cleanup processes: 5 minutes
+    "analysis": 120     # Maximum duration for disk analysis: 2 minutes
 }
 
-# Uygulama renk şeması (colors.py dosyasındaki renk çiftleri ile eşleşir)
+# Application color scheme (matches with the color pairs defined in colors.py)
 COLOR_SCHEME = {
-    "default": 1,       # Normal metin rengi
-    "highlight": 2,     # Seçili öğe rengi
-    "header": 3,        # Başlık rengi
-    "error": 4,         # Hata mesajları rengi
-    "info": 5,          # Bilgi mesajları rengi
-    "warning": 6,       # Uyarı mesajları rengi
-    "menu": 8           # Menü arka plan rengi
+    "default": 1,       # Default text color
+    "highlight": 2,     # Highlighted item color (used for selected menu items)
+    "header": 3,        # Header color
+    "error": 4,         # Error message color
+    "info": 5,          # Informational message color
+    "warning": 6,       # Warning message color
+    "menu": 8           # Menu background color
 }
 
-# Uygulama genelinde kullanılacak olan diğer sabitler
+# Other constants used throughout the application
 LOG_FILE_PATH = "/var/log/clean_my_system_tui.log"
 TEMP_DIR = "/tmp/clean_my_system_tui"
 CACHE_DIR = "/var/cache/clean_my_system_tui"
+
+MIN_TERMINAL_WIDTH = 80
+MIN_TERMINAL_HEIGHT = 24

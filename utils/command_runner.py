@@ -38,4 +38,13 @@ def run_command_with_timeout(command, timeout):
         RuntimeError: If the command returns a non-zero exit code or times out.
     """
     try:
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr
+        result = subprocess.run(command, shell=True, check=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                text=True, timeout=timeout)
+        return result.stdout
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"Command '{command}' timed out after {
+                           timeout} seconds")
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"Command '{command}' failed with error: {e.stderr}")

@@ -1,5 +1,7 @@
 import curses
 from ui.details import DetailsDisplay
+from config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT
+
 
 
 class LayoutManager:
@@ -7,7 +9,29 @@ class LayoutManager:
         self.stdscr = stdscr
         self.menu = menu
         self.details_display = DetailsDisplay(stdscr)
+        self.check_terminal_size()
         self.window_height, self.window_width = self.stdscr.getmaxyx()
+
+    def check_terminal_size(self):
+        height, width = self.stdscr.getmaxyx()
+        if height < MIN_TERMINAL_HEIGHT or width < MIN_TERMINAL_WIDTH:
+            raise curses.error(f"Terminal window too small. Please resize to at least {
+                               MIN_TERMINAL_WIDTH}x{MIN_TERMINAL_HEIGHT}.")
+
+    def handle_resize(self):
+        curses.update_lines_cols()
+        new_height, new_width = self.stdscr.getmaxyx()
+        if new_height < MIN_TERMINAL_HEIGHT or new_width < MIN_TERMINAL_WIDTH:
+            self.stdscr.clear()
+            self.stdscr.addstr(0, 0, f"Window too small. Minimum size: {
+                               MIN_TERMINAL_WIDTH}x{MIN_TERMINAL_HEIGHT}")
+            self.stdscr.refresh()
+            return
+
+        curses.resizeterm(new_height, new_width)
+        self.window_height, self.window_width = new_height, new_width
+        self.render(self.menu.get_selected_option())
+        self.stdscr.refresh()
 
     def render(self, current_option):
         self.stdscr.clear()
