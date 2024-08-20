@@ -2,28 +2,46 @@ import curses
 import os
 import time
 from tqdm import tqdm
-from disk_usage_analyzer import analyze_disk_usage  # Disk analizini içe aktar
+from disk_usage_analyzer import analyze_disk_usage
 
 
 def display_analysis(stdscr, analysis_results):
     stdscr.clear()
     stdscr.addstr(0, 0, "Disk Usage Analysis:\n", curses.A_BOLD)
 
-    row = 2
+    content = []
     for section, results in analysis_results.items():
-        stdscr.addstr(row, 2, f"{section}:", curses.A_BOLD)
-        row += 1
+        content.append(f"{section}:")
         for path, size in results:
-            stdscr.addstr(row, 4, f"{path}: {size}")
-            row += 1
-        row += 1
+            content.append(f"  {path}: {size}")
+        content.append("")
 
-    stdscr.refresh()
-    stdscr.getch()
+    current_line = 0
+    max_y, max_x = stdscr.getmaxyx()
+
+    while True:
+        stdscr.clear()
+        for i, line in enumerate(content[current_line:current_line+max_y-3]):
+            try:
+                stdscr.addstr(i+1, 0, line[:max_x-1])
+            except curses.error:
+                pass
+
+        stdscr.addstr(
+            max_y-2, 0, "Press UP/DOWN to scroll, Q to return to main menu", curses.A_REVERSE)
+        stdscr.refresh()
+        key = stdscr.getch()
+
+        if key == ord('q') or key == ord('Q'):
+            break
+        elif key == curses.KEY_DOWN and current_line < len(content) - max_y + 3:
+            current_line += 1
+        elif key == curses.KEY_UP and current_line > 0:
+            current_line -= 1
 
 
 def perform_cleanup(option, stdscr):
-    curses.endwin()  # curses arayüzünden çık
+    curses.endwin()
 
     if option == 1:
         command = "docker system prune -a --volumes -f"
@@ -53,16 +71,176 @@ def perform_cleanup(option, stdscr):
     else:
         return
 
-    # İlerleme çubuğunu başlat
     with tqdm(total=100, desc="Processing", bar_format="{l_bar}{bar} [ time left: {remaining} ]") as pbar:
-        for i in range(10):  # Bu örnekte, ilerleme çubuğu 10 adımda tamamlanıyor
-            os.system(command)  # Temizlik veya analiz komutunu çalıştır
-            # İlerleme çubuğunun yavaşça dolmasını simüle etmek için
+        for i in range(10):
+            os.system(command)
             time.sleep(0.5)
-            pbar.update(10)  # Her adımda ilerleme çubuğunu %10 ilerlet
+            pbar.update(10)
 
-    stdscr.clear()  # curses arayüzünü tekrar başlat ve temizle
+    stdscr.clear()
     stdscr.refresh()
+
+
+def clean_selected_app_caches(stdscr):
+    curses.curs_set(0)
+    analysis_results = analyze_disk_usage()
+    app_caches = analysis_results["Application Cache"]
+
+    current_selection = 0
+    selected_caches = [False] * len(app_caches)
+    scroll_offset = 0
+
+    while True:
+        stdscr.clear()
+        max_y, max_x = stdscr.getmaxyx()
+        stdscr.addstr(
+            0, 0, "Select Application Caches to Clean:\n", curses.A_BOLD)
+
+        for i in range(scroll_offset, min(len(app_caches), scroll_offset + max_y - 3)):
+            path, size = app_caches[i]
+            if i == current_selection:
+                stdscr.addstr(i - scroll_offset + 2, 0, "> ", curses.A_REVERSE)
+            else:
+                stdscr.addstr(i - scroll_offset + 2, 0, "  ")
+
+            marker = "[x]" if selected_caches[i] else "[ ]"
+            try:
+                stdscr.addstr(f"{marker} {os.path.basename(path)}: {
+                              size}"[:max_x-1])
+            except curses.error:
+                pass
+
+        stdscr.addstr(
+            max_y-1, 0, "SPACE: select/deselect, ENTER: confirm, q: quit", curses.A_REVERSE)
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == ord(' '):
+            selected_caches[current_selection] = not selected_caches[current_selection]
+        elif key == curses.KEY_UP:
+            if current_selection > 0:
+                current_selection -= 1
+                if current_selection < scroll_offset:
+                    scroll_offset -= 1
+        elif key == curses.KEY_DOWN:
+            if current_selection < len(app_caches) - 1:
+                current_selection += 1
+                if current_selection >= scroll_offset + max_y - 3:
+                    scroll_offset += 1
+        elif key == ord('\n'):
+            break
+        elif key == ord('q'):
+            return
+
+    curses.endwin()
+    for i, (path, _) in enumerate(app_caches):
+        if selected_caches[i]:
+            try:
+                command = f"rm -rf '{path}'"
+                os.system(command)
+            except Exception as e:
+                print(f"Error cleaning {path}: {str(e)}")
+
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Selected caches have been cleaned.")
+    stdscr.refresh()
+    stdscr.getch()
+
+    curses.curs_set(0)  # Cursor'ı gizle
+    analysis_results = analyze_disk_usage()
+    app_caches = analysis_results["Application Cache"]
+
+    current_selection = 0
+    selected_caches = [False] * len(app_caches)
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(
+            0, 0, "Select Application Caches to Clean:\n", curses.A_BOLD)
+
+        for i, (path, size) in enumerate(app_caches):
+            if i == current_selection:
+                stdscr.addstr(i + 2, 0, "> ", curses.A_REVERSE)
+            else:
+                stdscr.addstr(i + 2, 0, "  ")
+
+            marker = "[x]" if selected_caches[i] else "[ ]"
+            stdscr.addstr(f"{marker} {os.path.basename(path)}: {size}")
+
+        stdscr.addstr(len(app_caches) + 3, 0,
+                      "Press SPACE to select/deselect, ENTER to confirm, q to quit")
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == ord(' '):
+            selected_caches[current_selection] = not selected_caches[current_selection]
+        elif key == curses.KEY_UP and current_selection > 0:
+            current_selection -= 1
+        elif key == curses.KEY_DOWN and current_selection < len(app_caches) - 1:
+            current_selection += 1
+        elif key == ord('\n'):
+            break
+        elif key == ord('q'):
+            return
+
+    curses.endwin()
+    for i, (path, _) in enumerate(app_caches):
+        if selected_caches[i]:
+            command = f"sudo rm -rf '{path}'"
+            os.system(command)
+
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Selected caches have been cleaned.")
+    stdscr.refresh()
+    stdscr.getch()
+    curses.curs_set(0)  # Cursor'ı gizle
+    analysis_results = analyze_disk_usage()
+    app_caches = analysis_results["Application Cache"]
+
+    current_selection = 0
+    selected_caches = [False] * len(app_caches)
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(
+            0, 0, "Select Application Caches to Clean:\n", curses.A_BOLD)
+
+        for i, (path, size) in enumerate(app_caches):
+            if i == current_selection:
+                stdscr.addstr(i + 2, 0, "> ", curses.A_REVERSE)
+            else:
+                stdscr.addstr(i + 2, 0, "  ")
+
+            marker = "[x]" if selected_caches[i] else "[ ]"
+            stdscr.addstr(f"{marker} {path}: {size}")
+
+        stdscr.addstr(len(app_caches) + 3, 0,
+                      "Press SPACE to select/deselect, ENTER to confirm, q to quit")
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == ord(' '):
+            selected_caches[current_selection] = not selected_caches[current_selection]
+        elif key == curses.KEY_UP and current_selection > 0:
+            current_selection -= 1
+        elif key == curses.KEY_DOWN and current_selection < len(app_caches) - 1:
+            current_selection += 1
+        elif key == ord('\n'):
+            break
+        elif key == ord('q'):
+            return
+
+    curses.endwin()
+    for i, (path, _) in enumerate(app_caches):
+        if selected_caches[i]:
+            expanded_path = os.path.expanduser(path)
+            command = f"sudo rm -rf {expanded_path}"
+            os.system(command)
+
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Selected caches have been cleaned.")
+    stdscr.refresh()
+    stdscr.getch()
 
 
 def main(stdscr):
@@ -80,7 +258,8 @@ def main(stdscr):
         "9. Clean System Cache (/Library/Caches/* and ~/Library/Caches/*)",
         "10. Clean All System Caches (/System/Library/Caches/* and ~/Library/Caches/*)",
         "11. Disk Usage Analysis",
-        "12. Exit"
+        "12. Clean Selected Application Caches",
+        "13. Exit"
     ]
 
     current_option = 0
@@ -103,12 +282,18 @@ def main(stdscr):
         elif key == ord('\n'):
             if current_option == len(options) - 1:
                 break
+            elif current_option == 10:  # Disk Usage Analysis seçeneği
+                analysis_results = analyze_disk_usage()
+                display_analysis(stdscr, analysis_results)
+            elif current_option == 11:  # Clean Selected Application Caches seçeneği
+                clean_selected_app_caches(stdscr)
             else:
                 perform_cleanup(current_option + 1, stdscr)
-                stdscr.addstr(len(options) + 2, 2,
-                              "Operation complete. Press any key to continue.")
-                stdscr.refresh()
-                stdscr.getch()
+
+            stdscr.addstr(len(options) + 2, 2,
+                          "Operation complete. Press any key to continue.")
+            stdscr.refresh()
+            stdscr.getch()
 
     stdscr.clear()
     stdscr.refresh()
