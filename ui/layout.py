@@ -4,8 +4,6 @@ from ui.details import DetailsDisplay
 from ui.components import ProgressBar
 from config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT, COLOR_SCHEME
 
-
-
 class LayoutManager:
     def __init__(self, stdscr, menu):
         self.stdscr = stdscr
@@ -136,8 +134,17 @@ class LayoutManager:
         detail_win.refresh()
 
     def display_app_caches(self, app_caches, current_selection, selected_caches):
+        max_y, max_x = self.stdscr.getmaxyx()
+        detail_height = max_y - 9  # Leave space for borders, title, and legend
+        detail_width = max_x - self.menu_width - 3
+
+        # Calculate the visible range based on current_selection
+        start_index = max(0, current_selection - detail_height // 2)
+        end_index = min(len(app_caches), start_index + detail_height)
+
         content = "Select Application Caches to Clean:\n\n"
-        for i, (path, size) in enumerate(app_caches):
+        for i in range(start_index, end_index):
+            path, size = app_caches[i]
             marker = "X" if i in selected_caches else " "
             line = f"[{marker}] {os.path.basename(path)}: {size}"
             if i == current_selection:
@@ -148,6 +155,21 @@ class LayoutManager:
 
         self.update_details(content)
 
+        # Display scroll indicators if necessary
+        if start_index > 0:
+            self.stdscr.addch(3, max_x - 2, '^')
+        if end_index < len(app_caches):
+            self.stdscr.addch(max_y - 7, max_x - 2, 'v')
+
+        # Add legend
+        legend = [
+            "↑↓: Move selection",
+            "Space: Toggle selection",
+            "Enter: Start cleanup",
+            "Q: Return to main menu"
+        ]
+        for i, line in enumerate(legend):
+            self.stdscr.addstr(max_y - 5 + i, self.menu_width + 2, line)
 
     def display_message(self, message):
         """

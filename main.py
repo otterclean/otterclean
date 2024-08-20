@@ -107,7 +107,7 @@ def main(stdscr):
 
             elif key == curses.KEY_RIGHT:
                 selected_option = main_menu.get_selected_option()
-                if selected_option == 11:  # Clean Selected Application Caches
+                if selected_option == 12:  # Clean Selected Application Caches
                     clean_selected_app_caches(layout)
 
 

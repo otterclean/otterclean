@@ -95,22 +95,17 @@ def clear_temp_files(temp_dirs):
 def clean_selected_app_caches(layout):
     cache_dir = os.path.expanduser("~/Library/Caches")
     app_caches = []
-
     for item in os.listdir(cache_dir):
         full_path = os.path.join(cache_dir, item)
         if os.path.isdir(full_path):
             size = get_directory_size(full_path)
             app_caches.append((full_path, human_readable_size(size)))
 
-    selected_caches = []
     current_selection = 0
-
+    selected_caches = []
     while True:
-        layout.display_app_caches(
-            app_caches, current_selection, selected_caches)
-
+        layout.display_app_caches(app_caches, current_selection, selected_caches)
         key = layout.stdscr.getch()
-
         if key == curses.KEY_UP and current_selection > 0:
             current_selection -= 1
         elif key == curses.KEY_DOWN and current_selection < len(app_caches) - 1:
@@ -121,18 +116,25 @@ def clean_selected_app_caches(layout):
             else:
                 selected_caches.append(current_selection)
         elif key == ord('\n'):
-            break
+            if selected_caches:
+                break
+            else:
+                layout.display_message("No caches selected. Please select at least one cache.")
+                layout.stdscr.getch()
         elif key == ord('q'):
             return
-        elif key == curses.KEY_LEFT:
-            return  # Sol menüye dön
 
-    # Perform cleanup
+    # Perform cleanup of selected caches
+    cleaned_caches = []
     for index in selected_caches:
         path, _ = app_caches[index]
         try:
             shutil.rmtree(path)
+            cleaned_caches.append(os.path.basename(path))
         except Exception as e:
             layout.display_error(f"Error cleaning {path}: {str(e)}")
 
-    layout.display_message("Selected caches have been cleaned.")
+    result = f"Cleaned caches: {', '.join(cleaned_caches)}"
+    layout.display_result(result)
+    layout.display_message("Cleanup complete. Press any key to continue.")
+    layout.stdscr.getch()
