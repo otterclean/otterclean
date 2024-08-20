@@ -14,21 +14,20 @@ This project provides a terminal-based user interface (TUI) for performing vario
 
 First, clone this repository to your local machine:
 
-\`\`\`bash
+```bash
 git clone <repository-url>
 cd system_cleanup_project
-\`\`\`
-
+```
 ### 2. Run the Setup Script
 
 This project includes a `setup.sh` script that automates the setup process, including creating a virtual environment, installing dependencies, and running the program.
 
 To run the setup script:
 
-\`\`\`bash
+```bash
 chmod +x setup.sh
 ./setup.sh
-\`\`\`
+```
 
 ### 3. Manual Setup (Optional)
 
@@ -38,26 +37,26 @@ If you prefer to manually set up the environment, follow these steps:
 
 Create a virtual environment in the project directory:
 
-\`\`\`bash
+```bash
 python3 -m venv venv
 source venv/bin/activate
-\`\`\`
+```
 
 #### 3.2 Install Dependencies
 
 Install the required Python packages:
 
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 #### 3.3 Run the Program
 
 After setting up the environment and installing dependencies, you can run the program with:
 
-\`\`\`bash
+```bash
 python3 system_cleanup.py
-\`\`\`
+```
 
 ## Usage
 
@@ -90,14 +89,14 @@ To exit the program, simply select the "Exit" option from the menu.
 If you encounter any issues with missing packages or if the program fails to run:
 
 1. Ensure that the virtual environment is activated:
-   \`\`\`bash
+   ```bash
    source venv/bin/activate
-   \`\`\`
+   ```
 
 2. Reinstall the dependencies:
-   \`\`\`bash
+   ```bash
    pip install -r requirements.txt
-   \`\`\`
+   ```
 
 3. If you see an error related to `tqdm`, make sure it is installed and correctly configured in the virtual environment.
 
