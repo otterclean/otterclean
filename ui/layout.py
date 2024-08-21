@@ -292,3 +292,102 @@ class LayoutManager:
         self.stdscr.refresh()
 
         return password
+
+    def select_multiple_options(self, options, prompt):
+        selected_options = []
+        current_selection = 0
+
+        while True:
+            self.stdscr.clear()
+            self.stdscr.addstr(0, 0, prompt)
+            for i, option in enumerate(options):
+                if i == current_selection:
+                    self.stdscr.attron(curses.A_REVERSE)
+                if i in selected_options:
+                    self.stdscr.addstr(i + 2, 0, f"[x] {option}")
+                else:
+                    self.stdscr.addstr(i + 2, 0, f"[ ] {option}")
+                if i == current_selection:
+                    self.stdscr.attroff(curses.A_REVERSE)
+
+            self.stdscr.addstr(len(options) + 3, 0,
+                               "Use arrow keys to move, SPACE to select/deselect, ENTER to confirm")
+            self.stdscr.refresh()
+
+            key = self.stdscr.getch()
+            if key == curses.KEY_UP and current_selection > 0:
+                current_selection -= 1
+            elif key == curses.KEY_DOWN and current_selection < len(options) - 1:
+                current_selection += 1
+            elif key == ord(' '):
+                if current_selection in selected_options:
+                    selected_options.remove(current_selection)
+                else:
+                    selected_options.append(current_selection)
+            elif key == ord('\n'):
+                break
+
+        return [options[i] for i in selected_options]
+
+    def display_privacy_options(self, options):
+        max_y, max_x = self.stdscr.getmaxyx()
+        split_point = max_x // 3
+
+        selected_options = []
+        current_selection = 0
+
+        while True:
+            self.stdscr.clear()
+            self.draw_borders()
+            self.menu.render()
+
+            # Display privacy options in the details area
+            self.stdscr.addstr(3, split_point + 2, "Select privacy items to clean:")
+            for i, option in enumerate(options):
+                if i == current_selection:
+                    self.stdscr.attron(curses.A_REVERSE)
+                if i in selected_options:
+                    self.stdscr.addstr(5 + i, split_point + 2, f"[x] {option}")
+                else:
+                    self.stdscr.addstr(5 + i, split_point + 2, f"[ ] {option}")
+                if i == current_selection:
+                    self.stdscr.attroff(curses.A_REVERSE)
+
+            self.stdscr.addstr(6 + len(options), split_point + 2,
+                               "Use arrow keys to move, SPACE to select/deselect, ENTER to confirm")
+
+            self.draw_footer()
+            self.stdscr.refresh()
+
+            key = self.stdscr.getch()
+            if key == curses.KEY_UP and current_selection > 0:
+                current_selection -= 1
+            elif key == curses.KEY_DOWN and current_selection < len(options) - 1:
+                current_selection += 1
+            elif key == ord(' '):
+                if current_selection in selected_options:
+                    selected_options.remove(current_selection)
+                else:
+                    selected_options.append(current_selection)
+            elif key == ord('\n'):
+                break
+            elif key in [ord('q'), ord('Q')]:
+                return []
+
+        return [options[i] for i in selected_options]
+
+    def update_privacy_selection(self, options, selected_options, current_selection):
+        max_y, max_x = self.stdscr.getmaxyx()
+        split_point = max_x // 3
+
+        for i, option in enumerate(options):
+            if i == current_selection:
+                self.stdscr.attron(curses.A_REVERSE)
+            if i in selected_options:
+                self.stdscr.addstr(5 + i, split_point + 2, f"[x] {option}")
+            else:
+                self.stdscr.addstr(5 + i, split_point + 2, f"[ ] {option}")
+            if i == current_selection:
+                self.stdscr.attroff(curses.A_REVERSE)
+
+        self.stdscr.refresh()
