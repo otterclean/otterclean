@@ -16,23 +16,22 @@ class MainMenu:
         self.current_option = 0
         self.scroll_offset = 0
         self.window_height, self.window_width = self.stdscr.getmaxyx()
+        self.menu_width = self.window_width // 4
 
     def render(self):
-        max_y = self.window_height - 5
+        max_y = self.window_height - 6
         display_range = range(self.scroll_offset, min(
             self.scroll_offset + max_y, len(self.options)))
 
         for idx, option in enumerate(self.options[self.scroll_offset:self.scroll_offset + max_y]):
-            y = 1 + idx
+            y = 3 + idx  # Başlık için yer bırakıyoruz
             if idx + self.scroll_offset == self.current_option:
-                self.stdscr.attron(curses.color_pair(
-                    COLOR_SCHEME['highlight']))
-                self.stdscr.addstr(y, 2, option[:self.window_width // 3 - 4])
-                self.stdscr.attroff(curses.color_pair(
-                    COLOR_SCHEME['highlight']))
+                self.stdscr.attron(curses.color_pair(COLOR_SCHEME['highlight']))
+                self.stdscr.addstr(y, 2, f"> {option[:self.menu_width - 4]}")
+                self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['highlight']))
             else:
                 self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
-                self.stdscr.addstr(y, 2, option[:self.window_width // 3 - 4])
+                self.stdscr.addstr(y, 2, f"  {option[:self.menu_width - 4]}")
                 self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['default']))
 
     def navigate(self, direction):

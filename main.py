@@ -21,19 +21,19 @@ def main(stdscr):
     init_colors()
 
     options = [
-        "1. Comprehensive Docker Cleanup",
-        "2. Remove Unused Docker Images",
-        "3. Remove Stopped Containers",
-        "4. Remove Unused Docker Volumes",
-        "5. Clean Docker Build Cache",
-        "6. Clean Application Cache",
-        "7. Clean User Logs",
-        "8. Clean System Logs",
-        "9. Clean System Cache",
-        "10. Clean All System Caches",
-        "11. Disk Usage Analysis",
-        "12. Clean Selected Application Caches",
-        "13. Exit"
+        "Comprehensive Docker Cleanup",
+        "Remove Unused Docker Images",
+        "Remove Stopped Containers",
+        "Remove Unused Docker Volumes",
+        "Clean Docker Build Cache",
+        "Clean Application Cache",
+        "Clean User Logs",
+        "Clean System Logs",
+        "Clean System Cache",
+        "Clean All System Caches",
+        "Disk Usage Analysis",
+        "Clean Selected Application Caches",
+        "Exit"
     ]
 
     main_menu = MainMenu(stdscr, options)
@@ -54,10 +54,10 @@ def main(stdscr):
             elif key == ord('\n'):
                 selected_option = main_menu.get_selected_option()
 
-                if selected_option == 12:  # Exit option
+                if selected_option == len(options) - 1:  # Exit option
                     break
 
-                operation_name = options[selected_option].split(". ", 1)[1]
+                operation_name = options[selected_option]
 
                 if selected_option == 11:  # Clean Selected Application Caches
                     clean_selected_app_caches(layout)
@@ -89,27 +89,33 @@ def main(stdscr):
                     elif selected_option == 7:
                         result = clean_system_logs(['/var/log'])
                     elif selected_option == 8:
-                        result = clean_system_cache(
-                            ['/Library/Caches', '~/Library/Caches'])
+                        result = clean_system_cache(['/System/Library/Caches', '/Library/Caches'], layout)
                     elif selected_option == 9:
-                        result = clean_system_cache(
-                            ['/System/Library/Caches', '~/Library/Caches'])
+                        result = clean_system_cache(['/System/Library/Caches', '~/Library/Caches'], layout)
                     elif selected_option == 10:
                         result = analyze_disk_usage([os.path.expanduser('~')])
 
                     if result:
-                        layout.display_result(str(result))
+                        if selected_option in [0, 1, 2, 3, 4]:  # Docker işlemleri
+                            layout.display_operation_result(str(result))
+                        else:
+                            if isinstance(result, dict):
+                                layout.display_result(result)
+                            else:
+                                layout.display_operation_result(str(result))
+                        layout.stdscr.getch()
 
-                layout.display_message(
-                    "Operation complete. Press any key to continue.")
+                layout.display_operation_result("Operation complete. Press any key to continue.")
                 stdscr.getch()
                 layout.render(selected_option)
 
             elif key == curses.KEY_RIGHT:
                 selected_option = main_menu.get_selected_option()
-                if selected_option == 12:  # Clean Selected Application Caches
+                if selected_option == 11:  # Clean Selected Application Caches
                     clean_selected_app_caches(layout)
 
+            elif key in [ord('q'), ord('Q')]:
+                break
 
         except curses.error as e:
             layout.display_error(f"Curses error: {str(e)}")

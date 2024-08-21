@@ -1,10 +1,13 @@
 import curses
 from config.settings import COLOR_SCHEME
 class ProgressBar:
-    def __init__(self, stdscr, total):
+    def __init__(self, stdscr, total, y, x, width):
         self.stdscr = stdscr
         self.total = total
         self.current_progress = 0
+        self.y = y
+        self.x = x
+        self.width = width
         self.operation_name = ""
         self.elapsed_time = 0
 
@@ -15,24 +18,21 @@ class ProgressBar:
         self.render()
 
     def render(self):
-        max_y, max_x = self.stdscr.getmaxyx()
-        bar_width = max_x - 4
+        bar_width = self.width - 2
         filled = int(self.current_progress / self.total * bar_width)
 
         self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
 
+        # Progress bar
+        self.stdscr.addstr(self.y, self.x, "[" + "=" * filled + " " * (bar_width - filled) + "]")
+
         # Operation name and progress percentage
-        progress_text = f"{
-            self.operation_name} - {self.current_progress}% Complete"
-        self.stdscr.addstr(max_y - 2, 2, progress_text)
+        progress_text = f"{self.operation_name} - {self.current_progress}% Complete"
+        self.stdscr.addstr(self.y, self.x + 1, progress_text[:bar_width])
 
         # Elapsed time
         time_text = f"Time: {self.elapsed_time:.1f}s"
-        self.stdscr.addstr(max_y - 2, max_x - len(time_text) - 2, time_text)
-
-        # Progress bar
-        self.stdscr.addstr(max_y - 1, 2, "█" * filled +
-                           "░" * (bar_width - filled))
+        self.stdscr.addstr(self.y, self.width - len(time_text) - 1, time_text)
 
         self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['default']))
 

@@ -22,8 +22,11 @@ def prune_docker_images():
         str: The output from the prune command.
     """
     command = "docker image prune -a -f"
-    output = run_command(command)
-    return output
+    try:
+        output = run_command(command)
+        return output
+    except RuntimeError as e:
+        return f"Failed to prune Docker images: {str(e)}. Ensure Docker is running."
 
 
 def prune_docker_containers():
