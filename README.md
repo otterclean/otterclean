@@ -1,105 +1,103 @@
+Certainly! I'll rewrite the README to reflect an open-source project that's similar to CleanMyMac but for terminal use. Here's an updated version:
 
-# System Cleanup Project
+```markdown
+# Clean My System TUI
 
-This project provides a terminal-based user interface (TUI) for performing various system cleanup tasks, including Docker cleanup and system cache/log file cleanup. The program is written in Python and utilizes `curses` for the TUI and `tqdm` for progress bars.
+Clean My System TUI is an open-source, terminal-based system cleanup and optimization tool, inspired by CleanMyMac but designed for command-line enthusiasts. It provides a user-friendly terminal interface for various system maintenance tasks, including Docker management, cache cleaning, and disk usage analysis.
+
+## Features
+
+- Comprehensive system cleanup
+- Docker management and cleanup
+- Application and system cache cleaning
+- Log file management
+- Disk usage analysis
+- User-friendly Terminal User Interface (TUI)
 
 ## Prerequisites
 
 - Python 3.7 or higher
-- `pip` package manager (comes with Python)
+- pip (Python package manager)
 
-## Setup Instructions
+## Installation
 
-### 1. Clone the Repository
-
-First, clone this repository to your local machine:
-
-```bash
-git clone <repository-url>
-cd system_cleanup_project
-```
-### 2. Run the Setup Script
-
-This project includes a `setup.sh` script that automates the setup process, including creating a virtual environment, installing dependencies, and running the program.
-
-To run the setup script:
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-### 3. Manual Setup (Optional)
-
-If you prefer to manually set up the environment, follow these steps:
-
-#### 3.1 Create and Activate a Virtual Environment
-
-Create a virtual environment in the project directory:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-#### 3.2 Install Dependencies
-
-Install the required Python packages:
-
-```bash
-pip install -r requirements.txt
-```
-
-#### 3.3 Run the Program
-
-After setting up the environment and installing dependencies, you can run the program with:
-
-```bash
-python3 system_cleanup.py
-```
-
-## Usage
-
-Once the program is running, you'll see a list of cleanup options in a terminal-based user interface. Use the arrow keys to navigate and press `Enter` to select an option. The available options include:
-
-1. Comprehensive Docker Cleanup (system prune)
-2. Remove Unused Docker Images (image prune)
-3. Remove Stopped Containers (container prune)
-4. Remove Unused Docker Volumes (volume prune)
-5. Clean Docker Build Cache (builder prune --all)
-6. Clean Application Cache (~/Library/Caches/* and /Library/Caches/*)
-7. Clean User Logs (~/Library/Logs/*)
-8. Clean System Logs (/var/log/*)
-9. Clean System Cache (/Library/Caches/* and ~/Library/Caches/*)
-10. Clean All System Caches (/System/Library/Caches/* and ~/Library/Caches/*)
-11. Disk Usage Analysis (Human-Readable)
-   - Analyzes specific directories like Application Cache, User Logs, System Logs, and System Cache.
-   - Displays the disk usage for each section in a human-readable format.
-   - If a directory does not exist or an error occurs during calculation, a corresponding message is displayed.
-12. Exit
-
-Select the cleanup operation you wish to perform. The program will execute the corresponding commands and show a progress bar while the cleanup is in progress.
-
-## Exiting the Program
-
-To exit the program, simply select the "Exit" option from the menu.
-
-## Troubleshooting
-
-If you encounter any issues with missing packages or if the program fails to run:
-
-1. Ensure that the virtual environment is activated:
+1. Clone the repository:
    ```bash
+   git clone https://github.com/yourusername/clean-my-system-tui.git
+   cd clean-my-system-tui
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv venv
    source venv/bin/activate
    ```
 
-2. Reinstall the dependencies:
+3. Install the required dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. If you see an error related to `tqdm`, make sure it is installed and correctly configured in the virtual environment.
+## Usage
+
+Run the program with:
+
+```bash
+python3 main.py
+```
+
+Use the arrow keys to navigate the menu and press Enter to select an option.
+
+## Available Options
+
+1. Comprehensive Docker Cleanup
+2. Remove Unused Docker Images
+3. Remove Stopped Containers
+4. Remove Unused Docker Volumes
+5. Clean Docker Build Cache
+6. Clean Application Cache
+7. Clean User Logs
+8. Clean System Logs
+9. Clean System Cache
+10. Clean All System Caches
+11. Disk Usage Analysis
+12. Clean Selected Application Caches
+13. Exit
+
+## Contributing
+
+We welcome contributions to Clean My System TUI! Here's how you can help:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Roadmap
+
+- [ ] Add support for more operating systems
+- [ ] Implement system optimization features
+- [ ] Create a configuration file for customizable cleanup options
+- [ ] Add a feature to schedule regular cleanups
+- [ ] Implement a plugin system for community-contributed cleanup modules
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Inspired by CleanMyMac
+- Built with Python and curses
+- Thanks to all contributors who participate in this project
+
+## Disclaimer
+
+This software is provided as-is, and users are advised to use it at their own risk. Always ensure you have backups before performing system cleanup operations.
+
+```
+
+This README now reflects an open-source project similar to CleanMyMac but for terminal use. It includes sections on features, installation, usage, contributing guidelines, a roadmap for future development, and appropriate disclaimers. You can further customize this README to match the specific details and goals of your project.
