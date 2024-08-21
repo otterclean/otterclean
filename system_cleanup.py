@@ -105,8 +105,8 @@ def clean_selected_app_caches(stdscr):
 
             marker = "[x]" if selected_caches[i] else "[ ]"
             try:
-                stdscr.addstr(f"{marker} {os.path.basename(path)}: {
-                              size}"[:max_x-1])
+                stdscr.addstr(i - scroll_offset + 2, 2,
+                              f"{marker} {os.path.basename(path)}: {size}"[:max_x-4])
             except curses.error:
                 pass
 
@@ -146,101 +146,43 @@ def clean_selected_app_caches(stdscr):
     stdscr.refresh()
     stdscr.getch()
 
-    curses.curs_set(0)  # Cursor'ı gizle
-    analysis_results = analyze_disk_usage()
-    app_caches = analysis_results["Application Cache"]
 
-    current_selection = 0
-    selected_caches = [False] * len(app_caches)
+def display_details(stdscr, option):
+    details = f"Details for option {option}:\n"
 
-    while True:
-        stdscr.clear()
-        stdscr.addstr(
-            0, 0, "Select Application Caches to Clean:\n", curses.A_BOLD)
+    if option == 1:
+        details += "This will remove all unused containers, networks, images, and optionally, volumes."
+    elif option == 2:
+        details += "This will remove all unused Docker images."
+    elif option == 3:
+        details += "This will remove all stopped containers."
+    elif option == 4:
+        details += "This will remove all unused Docker volumes."
+    elif option == 5:
+        details += "This will clean the Docker build cache."
+    elif option == 6:
+        details += "This will remove application cache files."
+    elif option == 7:
+        details += "This will remove user log files."
+    elif option == 8:
+        details += "This will remove system log files."
+    elif option == 9:
+        details += "This will clean system caches."
+    elif option == 10:
+        details += "This will clean all system caches."
+    elif option == 11:
+        details += "This will analyze disk usage."
+    elif option == 12:
+        details += "This will allow you to select and clean specific application caches."
 
-        for i, (path, size) in enumerate(app_caches):
-            if i == current_selection:
-                stdscr.addstr(i + 2, 0, "> ", curses.A_REVERSE)
-            else:
-                stdscr.addstr(i + 2, 0, "  ")
-
-            marker = "[x]" if selected_caches[i] else "[ ]"
-            stdscr.addstr(f"{marker} {os.path.basename(path)}: {size}")
-
-        stdscr.addstr(len(app_caches) + 3, 0,
-                      "Press SPACE to select/deselect, ENTER to confirm, q to quit")
-        stdscr.refresh()
-
-        key = stdscr.getch()
-        if key == ord(' '):
-            selected_caches[current_selection] = not selected_caches[current_selection]
-        elif key == curses.KEY_UP and current_selection > 0:
-            current_selection -= 1
-        elif key == curses.KEY_DOWN and current_selection < len(app_caches) - 1:
-            current_selection += 1
-        elif key == ord('\n'):
-            break
-        elif key == ord('q'):
-            return
-
-    curses.endwin()
-    for i, (path, _) in enumerate(app_caches):
-        if selected_caches[i]:
-            command = f"sudo rm -rf '{path}'"
-            os.system(command)
-
+    max_y, max_x = stdscr.getmaxyx()
     stdscr.clear()
-    stdscr.addstr(0, 0, "Selected caches have been cleaned.")
+
+    # Display the details on the right side
+    for idx, line in enumerate(details.split('\n')):
+        stdscr.addstr(3 + idx, max_x // 3 + 2, line[:max_x - (max_x // 3) - 4])
+
     stdscr.refresh()
-    stdscr.getch()
-    curses.curs_set(0)  # Cursor'ı gizle
-    analysis_results = analyze_disk_usage()
-    app_caches = analysis_results["Application Cache"]
-
-    current_selection = 0
-    selected_caches = [False] * len(app_caches)
-
-    while True:
-        stdscr.clear()
-        stdscr.addstr(
-            0, 0, "Select Application Caches to Clean:\n", curses.A_BOLD)
-
-        for i, (path, size) in enumerate(app_caches):
-            if i == current_selection:
-                stdscr.addstr(i + 2, 0, "> ", curses.A_REVERSE)
-            else:
-                stdscr.addstr(i + 2, 0, "  ")
-
-            marker = "[x]" if selected_caches[i] else "[ ]"
-            stdscr.addstr(f"{marker} {path}: {size}")
-
-        stdscr.addstr(len(app_caches) + 3, 0,
-                      "Press SPACE to select/deselect, ENTER to confirm, q to quit")
-        stdscr.refresh()
-
-        key = stdscr.getch()
-        if key == ord(' '):
-            selected_caches[current_selection] = not selected_caches[current_selection]
-        elif key == curses.KEY_UP and current_selection > 0:
-            current_selection -= 1
-        elif key == curses.KEY_DOWN and current_selection < len(app_caches) - 1:
-            current_selection += 1
-        elif key == ord('\n'):
-            break
-        elif key == ord('q'):
-            return
-
-    curses.endwin()
-    for i, (path, _) in enumerate(app_caches):
-        if selected_caches[i]:
-            expanded_path = os.path.expanduser(path)
-            command = f"sudo rm -rf {expanded_path}"
-            os.system(command)
-
-    stdscr.clear()
-    stdscr.addstr(0, 0, "Selected caches have been cleaned.")
-    stdscr.refresh()
-    stdscr.getch()
 
 
 def main(stdscr):
@@ -266,12 +208,22 @@ def main(stdscr):
 
     while True:
         stdscr.clear()
+        max_y, max_x = stdscr.getmaxyx()
 
+        # Sol ve sağ tarafı ayırmak için ekranın genişliğini üçe böler
+        split_point = max_x // 3
+
+        # Sol tarafta seçenekleri göster
         for i, option in enumerate(options):
             if i == current_option:
-                stdscr.addstr(i + 1, 2, option, curses.A_REVERSE)
+                stdscr.attron(curses.A_REVERSE)
+                stdscr.addstr(3 + i, 2, option[:split_point - 4])
+                stdscr.attroff(curses.A_REVERSE)
             else:
-                stdscr.addstr(i + 1, 2, option)
+                stdscr.addstr(3 + i, 2, option[:split_point - 4])
+
+        # Seçili seçenek için detayları sağ tarafta göster
+        display_details(stdscr, current_option + 1)
 
         key = stdscr.getch()
 
@@ -290,7 +242,7 @@ def main(stdscr):
             else:
                 perform_cleanup(current_option + 1, stdscr)
 
-            stdscr.addstr(len(options) + 2, 2,
+            stdscr.addstr(max_y - 2, 2,
                           "Operation complete. Press any key to continue.")
             stdscr.refresh()
             stdscr.getch()
