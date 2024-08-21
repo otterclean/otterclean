@@ -175,14 +175,12 @@ def main(stdscr):
         stdscr.refresh()
 
     except KeyboardInterrupt:
-        # Programı nazikçe sonlandır
         stdscr.clear()
         stdscr.refresh()
         curses.endwin()
         print("Program interrupted by user. Exiting...")
 
     except Exception as e:
-        # Beklenmeyen hatalar için
         stdscr.clear()
         stdscr.refresh()
         curses.endwin()

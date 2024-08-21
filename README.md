@@ -1,9 +1,8 @@
-Certainly! I'll rewrite the README to reflect an open-source project that's similar to CleanMyMac but for terminal use. Here's an updated version:
 
-```markdown
-# Clean My System TUI
 
-Clean My System TUI is an open-source, terminal-based system cleanup and optimization tool, inspired by CleanMyMac but designed for command-line enthusiasts. It provides a user-friendly terminal interface for various system maintenance tasks, including Docker management, cache cleaning, and disk usage analysis.
+# System Cleanup TUI
+
+System Cleanup TUI is an open-source, terminal-based system cleanup and optimization tool designed for command-line enthusiasts. It provides a user-friendly Terminal User Interface (TUI) for various system maintenance tasks, including Docker management, cache cleaning, and disk usage analysis.
 
 ## Features
 
@@ -13,6 +12,36 @@ Clean My System TUI is an open-source, terminal-based system cleanup and optimiz
 - Log file management
 - Disk usage analysis
 - User-friendly Terminal User Interface (TUI)
+
+## Project Structure
+
+```
+clean_my_system_tui/
+├── main.py                    # Main entry point
+├── config/
+│   ├── colors.py              # Color palettes and themes
+│   └── settings.py            # Application settings and constants
+├── ui/
+│   ├── __init__.py
+│   ├── menu.py                # Menu rendering and management
+│   ├── details.py             # Displaying details of selected items
+│   ├── components.py          # Custom UI components (e.g., progress bar, dialogs)
+│   └── layout.py              # Layout management
+├── features/
+│   ├── __init__.py
+│   ├── cleanup.py             # System cleanup functions
+│   ├── analysis.py            # Disk analysis and other analytical functions
+│   ├── docker_management.py   # Docker-related cleanup and management
+│   └── system.py              # General system-related functions
+├── utils/
+│   ├── __init__.py
+│   ├── file_system.py         # File and directory operations
+│   ├── command_runner.py      # Helper functions for running shell commands
+│   └── progress.py            # Progress bars and loading animations
+└── assets/
+    ├── icons/                 # Icons or ASCII art for UI
+    └── fonts/                 # Custom font files (if terminal supports)
+```
 
 ## Prerequisites
 
@@ -66,23 +95,7 @@ Use the arrow keys to navigate the menu and press Enter to select an option.
 
 ## Contributing
 
-We welcome contributions to Clean My System TUI! Here's how you can help:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## Roadmap
-
-- [ ] Add support for more operating systems
-- [ ] Implement system optimization features
-- [ ] Create a configuration file for customizable cleanup options
-- [ ] Add a feature to schedule regular cleanups
-- [ ] Implement a plugin system for community-contributed cleanup modules
+We welcome contributions to Clean My System TUI! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
@@ -90,14 +103,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- Inspired by CleanMyMac
 - Built with Python and curses
 - Thanks to all contributors who participate in this project
 
 ## Disclaimer
 
 This software is provided as-is, and users are advised to use it at their own risk. Always ensure you have backups before performing system cleanup operations.
-
 ```
-
-This README now reflects an open-source project similar to CleanMyMac but for terminal use. It includes sections on features, installation, usage, contributing guidelines, a roadmap for future development, and appropriate disclaimers. You can further customize this README to match the specific details and goals of your project.
