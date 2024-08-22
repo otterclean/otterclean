@@ -1,8 +1,6 @@
 import os
-import shutil
-import pytest
 from unittest.mock import patch, call
-from features.browser_cleanup import clean_chrome_cache, clean_firefox_cache, clean_browser_caches
+from otterclean.features.browser_cleanup import clean_chrome_cache, clean_firefox_cache, clean_browser_caches
 
 def test_clean_chrome_cache_exists():
     with patch('os.path.exists', return_value=True), \

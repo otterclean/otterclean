@@ -1,5 +1,4 @@
-import os
-from utils.command_runner import run_command
+from otterclean.utils.command_runner import run_command
 
 
 def prune_docker_system():

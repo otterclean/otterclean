@@ -1,5 +1,5 @@
 import curses
-from config.settings import COLOR_SCHEME
+from otterclean.config.settings import COLOR_SCHEME
 
 
 class MainMenu:

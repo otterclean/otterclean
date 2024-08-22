@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from features.docker_management import prune_docker_system, prune_docker_images, prune_docker_containers, prune_docker_volumes, prune_docker_builder_cache
+from otterclean.features.docker_management import prune_docker_system, prune_docker_images, prune_docker_containers, prune_docker_volumes, prune_docker_builder_cache
 
 class TestDockerPruneCommands(unittest.TestCase):
 

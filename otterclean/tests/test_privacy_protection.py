@@ -1,7 +1,8 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import os  # Import the os module
-from features.privacy_protection import clean_privacy_traces, empty_trash
+from otterclean.features import clean_privacy_traces
+
 
 class TestCleanPrivacyTraces(unittest.TestCase):
 

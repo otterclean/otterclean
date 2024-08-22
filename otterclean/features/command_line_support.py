@@ -1,5 +1,6 @@
 import argparse
-from features import browser_cleanup, secure_delete, privacy_protection
+from otterclean.features import browser_cleanup, secure_delete
+from otterclean.features import privacy_protection
 
 
 def parse_arguments():
