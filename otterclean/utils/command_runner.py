@@ -43,8 +43,8 @@ def run_command_with_timeout(command, timeout):
                                 text=True, timeout=timeout)
         return result.stdout
     except subprocess.TimeoutExpired:
-        raise RuntimeError(f"Command '{command}' timed out after {
-                           timeout} seconds")
+        raise RuntimeError(f"Command '{command}' timed out after {timeout} seconds")
+
     except subprocess.CalledProcessError as e:
         raise RuntimeError(
             f"Command '{command}' failed with error: {e.stderr}")

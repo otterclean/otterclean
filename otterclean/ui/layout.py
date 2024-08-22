@@ -3,6 +3,7 @@ import os
 import textwrap
 from otterclean.ui.details import DetailsDisplay
 from otterclean.ui.components import ProgressBar
+from otterclean.ui.file_browser import FileBrowser
 from otterclean.config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT, COLOR_SCHEME
 
 class LayoutManager:
@@ -17,16 +18,17 @@ class LayoutManager:
     def check_terminal_size(self):
         height, width = self.stdscr.getmaxyx()
         if height < MIN_TERMINAL_HEIGHT or width < MIN_TERMINAL_WIDTH:
-            raise curses.error(f"Terminal window too small. Please resize to at least {
-                               MIN_TERMINAL_WIDTH}x{MIN_TERMINAL_HEIGHT}.")
+            raise curses.error(
+                f"Terminal window too small. Please resize to at least "
+                f"{MIN_TERMINAL_WIDTH}x{MIN_TERMINAL_HEIGHT}."
+            )
 
     def handle_resize(self):
         curses.update_lines_cols()
         new_height, new_width = self.stdscr.getmaxyx()
         if new_height < MIN_TERMINAL_HEIGHT or new_width < MIN_TERMINAL_WIDTH:
             self.stdscr.clear()
-            self.stdscr.addstr(0, 0, f"Window too small. Minimum size: {
-                               MIN_TERMINAL_WIDTH}x{MIN_TERMINAL_HEIGHT}")
+            self.stdscr.addstr(0, 0, f"Window too small. Minimum size: {MIN_TERMINAL_WIDTH}x{MIN_TERMINAL_HEIGHT}")
             self.stdscr.refresh()
             return
 
@@ -47,19 +49,15 @@ class LayoutManager:
     def draw_borders(self):
         self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
 
-        # Ana pencere kenarları
         self.stdscr.border()
 
-        # Menu bölümü için başlık ve kenar çizgisi
         self.stdscr.addstr(0, 2, " Clean My System ")
         self.stdscr.hline(1, 1, curses.ACS_HLINE, self.menu_width - 2)
 
-        # Details bölümü için başlık ve kenar çizgisi
         self.stdscr.addstr(0, self.menu_width + 2, " Operation Details ")
         self.stdscr.hline(1, self.menu_width + 1, curses.ACS_HLINE, self.window_width - self.menu_width - 2)
         self.stdscr.vline(1, self.menu_width, curses.ACS_VLINE, self.window_height - 3)
 
-        # Footer bölümü için çizgi
         self.stdscr.hline(self.window_height - 3, 1, curses.ACS_HLINE, self.window_width - 2)
 
         self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['default']))
@@ -391,3 +389,79 @@ class LayoutManager:
                 self.stdscr.attroff(curses.A_REVERSE)
 
         self.stdscr.refresh()
+
+    def get_file_or_folder(self, prompt):
+        max_y, max_x = self.stdscr.getmaxyx()
+        split_point = max_x // 3
+
+        self.stdscr.clear()
+        self.draw_borders()
+        self.menu.render()
+
+        # Prompt'u Operation Details bölümünde göster
+        self.stdscr.addstr(3, split_point + 2, prompt)
+        self.stdscr.refresh()
+
+        # FileBrowser'ı Operation Details bölümünde başlat
+        browser_window = self.stdscr.subwin(max_y - 6, max_x - split_point - 3, 5, split_point + 2)
+        browser_window.keypad(1)  # Enable keypad input
+        browser = FileBrowser(browser_window)
+        selected_path = browser.run()
+
+        self.stdscr.clear()
+        return selected_path
+
+    def select_deletion_method(self):
+        methods = ["simple", "dod", "gutmann"]
+        descriptions = [
+            "Simple: Overwrite once with random data",
+            "DoD: 3 passes of overwriting",
+            "Gutmann: 35 passes of overwriting (most secure, but very slow)"
+        ]
+        current_selection = 0
+
+        while True:
+            self.stdscr.clear()
+            self.draw_borders()
+
+            max_y, max_x = self.stdscr.getmaxyx()
+            split_point = max_x // 3
+
+            self.stdscr.addstr(3, split_point + 2, "Select secure deletion method:")
+            for i, (method, desc) in enumerate(zip(methods, descriptions)):
+                if i == current_selection:
+                    self.stdscr.attron(curses.A_REVERSE)
+                self.stdscr.addstr(5 + i, split_point + 2, f"{method}: {desc}")
+                if i == current_selection:
+                    self.stdscr.attroff(curses.A_REVERSE)
+
+            self.stdscr.addstr(9 + len(methods), split_point + 2,
+                               "Use arrow keys to move, ENTER to select")
+
+            self.draw_footer()
+            self.stdscr.refresh()
+
+            key = self.stdscr.getch()
+            if key == curses.KEY_UP and current_selection > 0:
+                current_selection -= 1
+            elif key == curses.KEY_DOWN and current_selection < len(methods) - 1:
+                current_selection += 1
+            elif key == ord('\n'):
+                return methods[current_selection]
+
+    def get_confirmation(self, message):
+        max_y, max_x = self.stdscr.getmaxyx()
+        split_point = max_x // 3
+
+        self.stdscr.clear()
+        self.draw_borders()
+
+        wrapped_message = textwrap.wrap(message, max_x - split_point - 4)
+        for idx, line in enumerate(wrapped_message):
+            self.stdscr.addstr(3 + idx, split_point + 2, line)
+
+        self.stdscr.addstr(5 + len(wrapped_message), split_point + 2, "Press 'y' to confirm or any other key to cancel")
+        self.stdscr.refresh()
+
+        key = self.stdscr.getch()
+        return key in [ord('y'), ord('Y')]
