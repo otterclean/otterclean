@@ -1,8 +1,7 @@
 import os
 from datetime import datetime
-import pytest
 from unittest.mock import patch, mock_open
-from features.reporting import generate_report, save_report
+from otterclean.features import generate_report, save_report
 
 def test_generate_report():
     cleanup_actions = [

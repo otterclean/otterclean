@@ -1,9 +1,9 @@
 import curses
 import os
 import textwrap
-from ui.details import DetailsDisplay
-from ui.components import ProgressBar
-from config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT, COLOR_SCHEME
+from otterclean.ui.details import DetailsDisplay
+from otterclean.ui.components import ProgressBar
+from otterclean.config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT, COLOR_SCHEME
 
 class LayoutManager:
     def __init__(self, stdscr, menu):

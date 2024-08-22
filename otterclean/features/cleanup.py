@@ -1,8 +1,7 @@
 import os
 import shutil
 import curses
-from utils.file_system import get_directory_size, human_readable_size
-from ui.components import ProgressBar, DialogBox
+from otterclean.utils.file_system import get_directory_size, human_readable_size
 
 
 def perform_cleanup(option):

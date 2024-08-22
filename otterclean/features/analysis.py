@@ -1,5 +1,5 @@
 import os
-from utils.file_system import get_directory_size, human_readable_size
+from otterclean.utils.file_system import get_directory_size, human_readable_size
 
 
 def analyze_disk_usage(directories):

@@ -1,8 +1,7 @@
-import os
-import shutil
 import pytest
-from unittest.mock import patch, MagicMock
-from features.cleanup import perform_cleanup, clear_cache, clear_logs, clear_temp_files
+from unittest.mock import patch
+from otterclean.features import clear_cache
+
 
 @pytest.fixture
 def test_clear_cache():

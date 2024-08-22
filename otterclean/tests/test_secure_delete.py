@@ -1,7 +1,5 @@
-import pytest
 from unittest.mock import mock_open, patch
-import os
-from features.secure_delete import secure_delete_file
+from otterclean.features.secure_delete import secure_delete_file
 
 def test_secure_delete_file_success():
     file_path = "/path/to/test/file.txt"

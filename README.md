@@ -1,8 +1,6 @@
+# OtterClean
 
-
-# System Cleanup TUI
-
-System Cleanup TUI is an open-source, terminal-based system cleanup and optimization tool designed for command-line enthusiasts. It provides a user-friendly Terminal User Interface (TUI) for various system maintenance tasks, including Docker management, cache cleaning, and disk usage analysis.
+OtterClean is an open-source, terminal-based system cleanup and optimization tool designed for command-line enthusiasts. It provides a user-friendly Terminal User Interface (TUI) for various system maintenance tasks, including Docker management, cache cleaning, and disk usage analysis.
 
 ## Features
 
@@ -16,7 +14,7 @@ System Cleanup TUI is an open-source, terminal-based system cleanup and optimiza
 ## Project Structure
 
 ```
-clean_my_system_tui/
+otterclean/
 ├── main.py                    # Main entry point
 ├── config/
 │   ├── colors.py              # Color palettes and themes
@@ -52,8 +50,8 @@ clean_my_system_tui/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/clean-my-system-tui.git
-   cd clean-my-system-tui
+   git clone https://github.com/yourusername/otterclean.git
+   cd otterclean
    ```
 
 2. Create and activate a virtual environment:
@@ -67,12 +65,17 @@ clean_my_system_tui/
    pip install -r requirements.txt
    ```
 
+4. Install the package:
+   ```bash
+   pip install .
+   ```
+
 ## Usage
 
 Run the program with:
 
 ```bash
-python3 main.py
+otterclean
 ```
 
 Use the arrow keys to navigate the menu and press Enter to select an option.
@@ -91,11 +94,12 @@ Use the arrow keys to navigate the menu and press Enter to select an option.
 10. Clean All System Caches
 11. Disk Usage Analysis
 12. Clean Selected Application Caches
-13. Exit
+13. Privacy Protection
+14. Exit
 
 ## Contributing
 
-We welcome contributions to Clean My System TUI! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+We welcome contributions to OtterClean! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
@@ -109,4 +113,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Disclaimer
 
 This software is provided as-is, and users are advised to use it at their own risk. Always ensure you have backups before performing system cleanup operations.
-```
+
+---

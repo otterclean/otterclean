@@ -1,7 +1,6 @@
-import os
 import pytest
-from features.analysis import analyze_disk_usage, analyze_file_types, analyze_large_files
-from utils.file_system import human_readable_size
+from otterclean.features.analysis import analyze_disk_usage, analyze_file_types, analyze_large_files
+
 
 @pytest.fixture
 def create_test_environment(tmpdir):

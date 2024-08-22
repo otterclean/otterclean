@@ -1,8 +1,7 @@
 import os
 import shutil
 import subprocess
-from getpass import getpass
-from utils.file_system import get_directory_size, human_readable_size
+from otterclean.utils.file_system import get_directory_size, human_readable_size
 
 
 def clean_system_logs(log_dirs):

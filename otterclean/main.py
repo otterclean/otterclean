@@ -1,23 +1,20 @@
 import curses
 import time
 import os
-from config.colors import init_colors
-from ui.menu import MainMenu
-from ui.layout import LayoutManager
-from features.cleanup import perform_cleanup, clean_selected_app_caches
-from features.analysis import analyze_disk_usage
-from features.docker_management import (
+from otterclean.config import init_colors
+from otterclean.ui import MainMenu, LayoutManager
+from otterclean.features import perform_cleanup, clean_selected_app_caches, get_privacy_options, clean_privacy_traces
+from otterclean.features.analysis import analyze_disk_usage
+from otterclean.features.docker_management import (
     prune_docker_system,
     prune_docker_images,
     prune_docker_containers,
     prune_docker_volumes,
     prune_docker_builder_cache
 )
-from features.system import clean_system_logs, clean_system_cache
-from features.browser_cleanup import clean_browser_caches
-from features.secure_delete import secure_delete_file
-from features.privacy_protection import get_privacy_options, clean_privacy_traces
-
+from otterclean.features.system import clean_system_logs, clean_system_cache
+from otterclean.features.browser_cleanup import clean_browser_caches
+from otterclean.features.secure_delete import secure_delete_file
 
 
 def main(stdscr):
@@ -185,7 +182,10 @@ def main(stdscr):
         stdscr.refresh()
         curses.endwin()
         print(f"An unexpected error occurred: {str(e)}")
+    pass
 
+def run():
+    curses.wrapper(main)
 
 if __name__ == "__main__":
     curses.wrapper(main)
