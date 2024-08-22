@@ -14,7 +14,7 @@ from otterclean.features.docker_management import (
 )
 from otterclean.features.system import clean_system_logs, clean_system_cache
 from otterclean.features.browser_cleanup import clean_browser_caches
-from otterclean.features.secure_delete import secure_delete_file
+from otterclean.features.secure_delete import secure_delete_file, secure_delete_folder
 
 
 def main(stdscr):
@@ -101,9 +101,31 @@ def main(stdscr):
                             result = analyze_disk_usage([os.path.expanduser('~')])
                         elif selected_option == 12:
                             result = clean_browser_caches()
-                        elif selected_option == 13:
-                            file_path = layout.get_input("Enter file path to securely delete: ")
-                            result = secure_delete_file(file_path)
+                        elif selected_option == 13:  # Secure File Deletion
+                            file_path = layout.get_file_or_folder("Select file/folder to securely delete:")
+                            if file_path:
+                                method = layout.select_deletion_method()
+                                if method:
+                                    confirm = layout.get_confirmation(
+                                        f"Are you sure you want to securely delete {file_path} using {method} method?")
+                                    if confirm:
+                                        if os.path.isfile(file_path):
+                                            for progress in secure_delete_file(file_path, method):
+                                                layout.display_operation_message(progress)
+                                            result = "File deletion completed"
+                                        elif os.path.isdir(file_path):
+                                            for progress in secure_delete_folder(file_path, method):
+                                                layout.display_operation_message(progress)
+                                            result = "Folder deletion completed"
+                                        else:
+                                            result = "Invalid path"
+                                        layout.display_operation_result(result)
+                                    else:
+                                        layout.display_operation_result("Operation cancelled")
+                                else:
+                                    layout.display_operation_result("No deletion method selected")
+                            else:
+                                layout.display_operation_result("No file/folder selected")
                         elif selected_option == 14:  # Privacy Protection
                             privacy_options = get_privacy_options()
                             selected_privacy_options = layout.display_privacy_options(privacy_options)
