@@ -1,19 +1,32 @@
 import curses
 import os
 import textwrap
-from otterclean.ui.details import DetailsDisplay
-from otterclean.ui.components import ProgressBar
+from otterclean.ui.sections.menu_section import MenuSection
+from otterclean.ui.sections.details_section import DetailsSection
+from otterclean.ui.sections.footer_section import FooterSection
+from otterclean.ui.ui_components import UIComponents
 from otterclean.ui.file_browser import FileBrowser
 from otterclean.config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT, COLOR_SCHEME
 
+
 class LayoutManager:
-    def __init__(self, stdscr, menu):
+    def __init__(self, stdscr, options):
         self.stdscr = stdscr
-        self.menu = menu
-        self.details_display = DetailsDisplay(stdscr)
         self.window_height, self.window_width = self.stdscr.getmaxyx()
-        self.menu_width = self.window_width // 3
-        self.progress_bar = ProgressBar(stdscr, 100, self.window_height - 2, 0, self.window_width)
+
+        menu_height = self.window_height - 3
+        menu_width = self.window_width // 3
+        details_width = self.window_width - menu_width - 1
+
+        menu_win = stdscr.subwin(menu_height, menu_width, 1, 0)
+        details_win = stdscr.subwin(menu_height, details_width, 1, menu_width + 1)
+        footer_win = stdscr.subwin(3, self.window_width, self.window_height - 3, 0)
+
+        self.menu_section = MenuSection(menu_win, options)
+        self.details_section = DetailsSection(details_win)
+        self.footer_section = FooterSection(footer_win)
+
+        self.ui_components = UIComponents()
 
     def check_terminal_size(self):
         height, width = self.stdscr.getmaxyx()
@@ -34,41 +47,36 @@ class LayoutManager:
 
         curses.resizeterm(new_height, new_width)
         self.window_height, self.window_width = new_height, new_width
-        self.render(self.menu.get_selected_option())
-        self.stdscr.refresh()
 
-    def render(self, current_option):
+        menu_height = self.window_height - 3
+        menu_width = self.window_width // 3
+        details_width = self.window_width - menu_width - 1
+
+        self.menu_section.window.resize(menu_height, menu_width)
+        self.details_section.window.resize(menu_height, details_width)
+        self.details_section.window.mvwin(1, menu_width + 1)
+        self.footer_section.window.resize(3, self.window_width)
+        self.footer_section.window.mvwin(self.window_height - 3, 0)
+
+        self.render()
+
+    def render(self):
         self.stdscr.clear()
         self.draw_borders()
-        self.menu.render()
-        details = self.get_details_for_option(current_option)
-        self.details_display.render(details)
-        self.draw_footer()
+        self.menu_section.render()
+        details = self.get_details_for_option(self.menu_section.get_selected_option())
+        self.details_section.render(details)
+        self.footer_section.render("Press 'q' to quit | Arrow keys to navigate | Enter to select")
         self.stdscr.refresh()
 
     def draw_borders(self):
         self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
-
         self.stdscr.border()
-
         self.stdscr.addstr(0, 2, " Clean My System ")
-        self.stdscr.hline(1, 1, curses.ACS_HLINE, self.menu_width - 2)
-
-        self.stdscr.addstr(0, self.menu_width + 2, " Operation Details ")
-        self.stdscr.hline(1, self.menu_width + 1, curses.ACS_HLINE, self.window_width - self.menu_width - 2)
-        self.stdscr.vline(1, self.menu_width, curses.ACS_VLINE, self.window_height - 3)
-
-        self.stdscr.hline(self.window_height - 3, 1, curses.ACS_HLINE, self.window_width - 2)
-
+        self.stdscr.hline(1, 1, curses.ACS_HLINE, self.window_width - 2)
+        self.stdscr.addstr(0, self.window_width // 3 + 2, " Operation Details ")
+        self.stdscr.vline(1, self.window_width // 3, curses.ACS_VLINE, self.window_height - 3)
         self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['default']))
-
-    def draw_footer(self):
-        self.progress_bar.render()
-        footer_text = "Press 'q' to quit | Arrow keys to navigate | Enter to select"
-        footer_y = self.window_height - 1
-        self.stdscr.addstr(footer_y, 1, footer_text[:self.window_width - 2])
-        self.stdscr.refresh()
-
 
     def get_details_for_option(self, option):
         details_map = {
@@ -86,382 +94,126 @@ class LayoutManager:
             11: "Clean Selected Application Caches: Allows you to choose specific application caches to clean.",
             12: "Exit: Close the application."
         }
-
         return details_map.get(option, "No details available for this option.")
 
 
-    def update_details(self, content):
-        max_y, max_x = self.stdscr.getmaxyx()
-        detail_width = max_x - self.menu_width - 1
-        detail_win = self.stdscr.subwin(
-            max_y - 2, detail_width, 1, self.menu_width + 1)
-        detail_win.clear()
-        detail_win.box()
-
-        lines = content.split('\n')
-        for i, line in enumerate(lines):
-            if i >= max_y - 4:  # Leave space for borders
-                break
-            detail_win.addstr(i + 1, 1, line[:detail_width - 2])
-
-        detail_win.refresh()
-
-    def display_app_caches(self, app_caches, current_selection, selected_caches):
-        max_y, max_x = self.stdscr.getmaxyx()
-        detail_height = max_y - 9  # Leave space for borders, title, and legend
-        detail_width = (2 * max_x) // 3 - 3  # Use two-thirds of the screen width for details
-
-        # Calculate the visible range based on current_selection
-        start_index = max(0, current_selection - detail_height // 2)
-        end_index = min(len(app_caches), start_index + detail_height)
-
-        # Prepare content to fit within the details section
-        content = "Select Application Caches to Clean:\n\n"
-        for i in range(start_index, end_index):
-            path, size = app_caches[i]
-            marker = "X" if i in selected_caches else " "
-            line = f"[{marker}] {os.path.basename(path)}: {size}"
-            if i == current_selection:
-                line = "> " + line
-            else:
-                line = "  " + line
-            # Ensure line doesn't exceed the available detail width
-            content += line[:detail_width - 2] + "\n"
-
-        # Update the details area with the prepared content
-        self.update_details(content)
-
-        # Display scroll indicators if necessary
-        if start_index > 0:
-            self.stdscr.addch(3, self.menu_width + detail_width, '^')
-        if end_index < len(app_caches):
-            self.stdscr.addch(max_y - 7, self.menu_width + detail_width, 'v')
-
-        # Add legend horizontally, within the details section
-        legend = "↑↓: Move selection   Space: Toggle selection   Enter: Start cleanup   Q: Return to main menu"
-        self.stdscr.addstr(max_y - 5, self.menu_width + 2, legend[:detail_width - 2])
-
-        # Refresh to display changes
-        self.stdscr.refresh()
-
     def display_message(self, message):
-        """
-        Displays a message in the footer area.
-
-        Args:
-            message (str): The message to display.
-        """
-        max_y, max_x = self.stdscr.getmaxyx()
-        self.stdscr.addstr(max_y - 1, 0, message[:max_x - 1])
-        self.stdscr.clrtoeol()  # Clear the rest of the line
-        self.stdscr.refresh()
+        self.ui_components.display_message(self.details_section.window, message)
 
     def display_result(self, result):
-        """
-        Displays the result of an operation in the details area.
-
-        Args:
-            result (dict or str): The result to display.
-        """
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
-
-        # Clear the details area
-        for y in range(3, max_y - 4):
-            self.stdscr.addstr(y, split_point + 2, " " * (max_x - split_point - 4))
-
-        if isinstance(result, dict):
-            # Display the summary
-            summary = f"Operation Summary:\n"
-            summary += f"Directories processed: {result.get('total_dirs', 'N/A')}\n"
-            summary += f"Directories cleaned: {result.get('cleaned_dirs', 'N/A')}\n"
-            summary += f"Errors encountered: {len(result.get('errors', []))}\n\n"
-
-            summary += "Cleaned Directories:\n"
-            for dir_path, size in result.get('cleared_sizes', {}).items():
-                summary += f"{dir_path}: {size}\n"
-
-            if result.get('errors'):
-                summary += "\nErrors encountered (first 5):\n"
-                for error in result['errors'][:5]:
-                    summary += f"{error}\n"
-                if len(result['errors']) > 5:
-                    summary += f"... and {len(result['errors']) - 5} more errors."
-        else:
-            summary = str(result)
-
-        # Display the summary
-        lines = summary.split('\n')
-        for idx, line in enumerate(lines):
-            if 3 + idx < max_y - 4:  # Ensure we don't write beyond the bottom of the screen
-                self.stdscr.addstr(3 + idx, split_point + 2, line[:max_x - split_point - 4])
-
-        self.stdscr.refresh()
-
+        self.details_section.display_result(result)
 
     def display_operation_result(self, message):
-        """
-        Displays the operation result in the Operation Details section.
-
-        Args:
-            message (str): The message to display.
-        """
-        max_y, max_x = self.stdscr.getmaxyx()
-        detail_start_y = max_y - 5  # Footer'ın üstünde göster
-        detail_start_x = 1
-        detail_width = max_x - 2
-
-        # Mesajı göster
-        wrapped_message = textwrap.wrap(message, detail_width)
-        for idx, line in enumerate(wrapped_message):
-            if detail_start_y + idx < max_y - 3:
-                self.stdscr.addstr(detail_start_y + idx, detail_start_x, line)
-
-        self.stdscr.refresh()
-
+        self.details_section.display_operation_result(message)
 
     def display_full_logs(self, result):
-        """
-        Displays full logs in a scrollable view.
-
-        Args:
-            result (dict): The result containing full logs.
-        """
-        max_y, max_x = self.stdscr.getmaxyx()
-        pad = curses.newpad(len(result['errors']) + 1, max_x - 4)
-
-        for idx, error in enumerate(result['errors']):
-            pad.addstr(idx, 0, error)
-
-        pad_pos = 0
-        while True:
-            pad.refresh(pad_pos, 0, 2, 2, max_y - 3, max_x - 2)
-            key = self.stdscr.getch()
-            if key == curses.KEY_DOWN and pad_pos < len(result['errors']) - (max_y - 5):
-                pad_pos += 1
-            elif key == curses.KEY_UP and pad_pos > 0:
-                pad_pos -= 1
-            elif key in [ord('q'), ord('Q')]:
-                break
-
-        self.stdscr.clear()
-        self.render(self.menu.get_selected_option())
+        self.details_section.display_full_logs(result)
 
     def display_operation_message(self, message):
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
-
-        # Mevcut detay alanını temizle
-        for y in range(3, max_y - 4):
-            self.stdscr.addstr(y, split_point + 2, " " * (max_x - split_point - 4))
-
-        # Mesajı detay alanında göster
-        self.stdscr.addstr(3, split_point + 2, message)
-        self.stdscr.refresh()
+        self.details_section.display_operation_message(message)
 
     def get_password(self, prompt):
-        curses.echo()  # Karakterleri göster
-        self.stdscr.addstr(self.window_height - 1, 0, prompt)
-        password = self.stdscr.getstr().decode('utf-8')
-        curses.noecho()  # Karakterleri gizle
-        self.stdscr.addstr(self.window_height - 1, 0, " " * len(prompt))  # Prompt'u temizle
-        return password
-
+        return self.ui_components.get_password(self.stdscr, prompt)
 
     def get_password_in_details(self, prompt):
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
-
-        # Mevcut detay alanını temizle
-        for y in range(3, max_y - 4):
-            self.stdscr.addstr(y, split_point + 2, " " * (max_x - split_point - 4))
-
-        # Prompt'u detay alanında göster
-        self.stdscr.addstr(3, split_point + 2, prompt)
-        self.stdscr.refresh()
-
-        # Şifreyi al
-        curses.echo()
-        password = self.stdscr.getstr(4, split_point + 2, 30).decode('utf-8')
-        curses.noecho()
-
-        # Şifre alanını temizle
-        self.stdscr.addstr(4, split_point + 2, " " * 30)
-        self.stdscr.refresh()
-
-        return password
+        return self.ui_components.get_password_in_details(self.details_section.window, prompt)
 
     def select_multiple_options(self, options, prompt):
-        selected_options = []
-        current_selection = 0
-
-        while True:
-            self.stdscr.clear()
-            self.stdscr.addstr(0, 0, prompt)
-            for i, option in enumerate(options):
-                if i == current_selection:
-                    self.stdscr.attron(curses.A_REVERSE)
-                if i in selected_options:
-                    self.stdscr.addstr(i + 2, 0, f"[x] {option}")
-                else:
-                    self.stdscr.addstr(i + 2, 0, f"[ ] {option}")
-                if i == current_selection:
-                    self.stdscr.attroff(curses.A_REVERSE)
-
-            self.stdscr.addstr(len(options) + 3, 0,
-                               "Use arrow keys to move, SPACE to select/deselect, ENTER to confirm")
-            self.stdscr.refresh()
-
-            key = self.stdscr.getch()
-            if key == curses.KEY_UP and current_selection > 0:
-                current_selection -= 1
-            elif key == curses.KEY_DOWN and current_selection < len(options) - 1:
-                current_selection += 1
-            elif key == ord(' '):
-                if current_selection in selected_options:
-                    selected_options.remove(current_selection)
-                else:
-                    selected_options.append(current_selection)
-            elif key == ord('\n'):
-                break
-
-        return [options[i] for i in selected_options]
+        return self.ui_components.select_multiple_options(self.details_section.window, options, prompt)
 
     def display_privacy_options(self, options):
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
-
-        selected_options = []
-        current_selection = 0
-
-        while True:
-            self.stdscr.clear()
-            self.draw_borders()
-            self.menu.render()
-
-            # Display privacy options in the details area
-            self.stdscr.addstr(3, split_point + 2, "Select privacy items to clean:")
-            for i, option in enumerate(options):
-                if i == current_selection:
-                    self.stdscr.attron(curses.A_REVERSE)
-                if i in selected_options:
-                    self.stdscr.addstr(5 + i, split_point + 2, f"[x] {option}")
-                else:
-                    self.stdscr.addstr(5 + i, split_point + 2, f"[ ] {option}")
-                if i == current_selection:
-                    self.stdscr.attroff(curses.A_REVERSE)
-
-            self.stdscr.addstr(6 + len(options), split_point + 2,
-                               "Use arrow keys to move, SPACE to select/deselect, ENTER to confirm")
-
-            self.draw_footer()
-            self.stdscr.refresh()
-
-            key = self.stdscr.getch()
-            if key == curses.KEY_UP and current_selection > 0:
-                current_selection -= 1
-            elif key == curses.KEY_DOWN and current_selection < len(options) - 1:
-                current_selection += 1
-            elif key == ord(' '):
-                if current_selection in selected_options:
-                    selected_options.remove(current_selection)
-                else:
-                    selected_options.append(current_selection)
-            elif key == ord('\n'):
-                break
-            elif key in [ord('q'), ord('Q')]:
-                return []
-
-        return [options[i] for i in selected_options]
+        return self.ui_components.display_privacy_options(self.details_section.window, options)
 
     def update_privacy_selection(self, options, selected_options, current_selection):
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
-
-        for i, option in enumerate(options):
-            if i == current_selection:
-                self.stdscr.attron(curses.A_REVERSE)
-            if i in selected_options:
-                self.stdscr.addstr(5 + i, split_point + 2, f"[x] {option}")
-            else:
-                self.stdscr.addstr(5 + i, split_point + 2, f"[ ] {option}")
-            if i == current_selection:
-                self.stdscr.attroff(curses.A_REVERSE)
-
-        self.stdscr.refresh()
+        self.ui_components.update_privacy_selection(self.details_section.window, options, selected_options,
+                                                    current_selection)
 
     def get_file_or_folder(self, prompt):
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
-
-        self.stdscr.clear()
-        self.draw_borders()
-        self.menu.render()
-
-        # Prompt'u Operation Details bölümünde göster
-        self.stdscr.addstr(3, split_point + 2, prompt)
-        self.stdscr.refresh()
-
-        # FileBrowser'ı Operation Details bölümünde başlat
-        browser_window = self.stdscr.subwin(max_y - 6, max_x - split_point - 3, 5, split_point + 2)
-        browser_window.keypad(1)  # Enable keypad input
-        browser = FileBrowser(browser_window)
-        selected_path = browser.run()
-
-        self.stdscr.clear()
-        return selected_path
+        return self.ui_components.get_file_or_folder(self.details_section.window, prompt)
 
     def select_deletion_method(self):
-        methods = ["simple", "dod", "gutmann"]
-        descriptions = [
-            "Simple: Overwrite once with random data",
-            "DoD: 3 passes of overwriting",
-            "Gutmann: 35 passes of overwriting (most secure, but very slow)"
-        ]
+        return self.ui_components.select_deletion_method(self.details_section.window)
+
+    def get_confirmation(self, message):
+        return self.ui_components.get_confirmation(self.details_section.window, message)
+
+    def display_error(self, error_message):
+        self.ui_components.display_error(self.details_section.window, error_message)
+
+    def display_file_browser(self, prompt):
+        self.details_section.clear()
+        return self.ui_components.get_file_or_folder(self.details_section.window, prompt)
+
+    def display_app_caches(self, app_caches):
+        selected_options = []
         current_selection = 0
+        scroll_offset = 0
 
         while True:
             self.stdscr.clear()
             self.draw_borders()
+            self.menu_section.render()
 
             max_y, max_x = self.stdscr.getmaxyx()
             split_point = max_x // 3
+            details_height = max_y - 5  # Başlık ve alt bilgi için yer bırakıyoruz
+            max_display = details_height - 2  # Çerçeve için 2 satır düşüyoruz
 
-            self.stdscr.addstr(3, split_point + 2, "Select secure deletion method:")
-            for i, (method, desc) in enumerate(zip(methods, descriptions)):
+            self.stdscr.addstr(3, split_point + 2, "Select Application Caches to Clean:")
+
+            # Görüntülenecek öğeleri sınırla ve kaydırma uygula
+            visible_items = min(max_display, len(app_caches))
+            end_index = min(scroll_offset + visible_items, len(app_caches))
+
+            for i, (path, size) in enumerate(app_caches[scroll_offset:end_index], start=scroll_offset):
+                y = i - scroll_offset + 5
                 if i == current_selection:
                     self.stdscr.attron(curses.A_REVERSE)
-                self.stdscr.addstr(5 + i, split_point + 2, f"{method}: {desc}")
+                marker = 'X' if i in selected_options else ' '
+                display_text = f"[{marker}] {os.path.basename(path)}: {size}"
+                self.stdscr.addstr(y, split_point + 2, display_text[:max_x - split_point - 4])
                 if i == current_selection:
                     self.stdscr.attroff(curses.A_REVERSE)
 
-            self.stdscr.addstr(9 + len(methods), split_point + 2,
-                               "Use arrow keys to move, ENTER to select")
+            # Kaydırma çubuğunu göster
+            if len(app_caches) > visible_items:
+                scrollbar_height = int(visible_items * (visible_items / len(app_caches)))
+                scrollbar_pos = int((scroll_offset / len(app_caches)) * visible_items)
+                for i in range(visible_items):
+                    if scrollbar_pos <= i < scrollbar_pos + scrollbar_height:
+                        self.stdscr.addstr(i + 5, max_x - 1, "█")
+                    else:
+                        self.stdscr.addstr(i + 5, max_x - 1, "│")
 
-            self.draw_footer()
+            self.stdscr.addstr(max_y - 2, split_point + 2,
+                               "Use ↑↓ to move, SPACE to select/deselect, ENTER to confirm, 'q' to quit")
+
             self.stdscr.refresh()
 
             key = self.stdscr.getch()
-            if key == curses.KEY_UP and current_selection > 0:
-                current_selection -= 1
-            elif key == curses.KEY_DOWN and current_selection < len(methods) - 1:
-                current_selection += 1
+            if key == ord('q'):
+                return None
+            elif key == curses.KEY_UP:
+                if current_selection > 0:
+                    current_selection -= 1
+                    if current_selection < scroll_offset:
+                        scroll_offset = max(0, scroll_offset - 1)
+            elif key == curses.KEY_DOWN:
+                if current_selection < len(app_caches) - 1:
+                    current_selection += 1
+                    if current_selection >= scroll_offset + visible_items:
+                        scroll_offset = min(len(app_caches) - visible_items, scroll_offset + 1)
+            elif key == ord(' '):
+                if current_selection in selected_options:
+                    selected_options.remove(current_selection)
+                else:
+                    selected_options.append(current_selection)
             elif key == ord('\n'):
-                return methods[current_selection]
+                break
 
-    def get_confirmation(self, message):
-        max_y, max_x = self.stdscr.getmaxyx()
-        split_point = max_x // 3
+        return [app_caches[i][0] for i in selected_options]
 
-        self.stdscr.clear()
-        self.draw_borders()
+    def display_deletion_methods(self):
+        self.details_section.clear()
+        return self.ui_components.select_deletion_method(self.details_section.window)
 
-        wrapped_message = textwrap.wrap(message, max_x - split_point - 4)
-        for idx, line in enumerate(wrapped_message):
-            self.stdscr.addstr(3 + idx, split_point + 2, line)
-
-        self.stdscr.addstr(5 + len(wrapped_message), split_point + 2, "Press 'y' to confirm or any other key to cancel")
-        self.stdscr.refresh()
-
-        key = self.stdscr.getch()
-        return key in [ord('y'), ord('Y')]
