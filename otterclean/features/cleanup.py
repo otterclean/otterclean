@@ -4,6 +4,7 @@ import curses
 from otterclean.utils.file_system import get_directory_size, human_readable_size
 
 
+
 def perform_cleanup(option):
     if option == 1:
         print("Clearing caches...")
@@ -137,3 +138,14 @@ def clean_selected_app_caches(layout):
     layout.display_result(result)
     layout.display_message("Cleanup complete. Press any key to continue.")
     layout.stdscr.getch()
+
+
+def get_application_caches():
+    cache_dir = os.path.expanduser("~/Library/Caches")
+    app_caches = []
+    for item in os.listdir(cache_dir):
+        full_path = os.path.join(cache_dir, item)
+        if os.path.isdir(full_path):
+            size = get_directory_size(full_path)
+            app_caches.append((full_path, human_readable_size(size)))
+    return app_caches

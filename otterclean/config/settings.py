@@ -1,8 +1,10 @@
+import os
+
 # Application Title
-APP_TITLE = "Clean My System TUI"
+APP_TITLE = "Otter Clean"
 
 # Version Information
-APP_VERSION = "1.0.0"
+APP_VERSION = "0.1.0"
 
 # Number of items in the menu
 MENU_ITEM_COUNT = 13
@@ -34,10 +36,13 @@ COLOR_SCHEME = {
     "menu": 8
 }
 
-# Other constants used throughout the application
-LOG_FILE_PATH = "/var/log/clean_my_system_tui.log"
+# Determine log file path
+LOGS_DIR = os.path.join(os.path.dirname(__file__), '..', 'logs')
+LOG_FILE_PATH = os.path.join(LOGS_DIR, 'otter_clean.log')
+
+# Ensure the logs directory exists
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+# Other directories
 TEMP_DIR = "/tmp/clean_my_system_tui"
 CACHE_DIR = "/var/cache/clean_my_system_tui"
-
-MIN_TERMINAL_WIDTH = 80
-MIN_TERMINAL_HEIGHT = 24

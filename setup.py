@@ -1,9 +1,4 @@
 from setuptools import setup, find_packages
-import curses
-from otterclean.main import main
-
-def run():
-    curses.wrapper(main)
 
 setup(
     name="otterclean",
