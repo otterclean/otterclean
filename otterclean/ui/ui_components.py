@@ -108,7 +108,7 @@ class UIComponents:
         selected_options = []
         current_selection = 0
         scroll_offset = 0
-        max_display = height - 5  # Prompt ve talimatlar için yer bırakıyoruz
+        max_display = height - 7  # Başlık, prompt ve footer için yer bırakıyoruz
 
         while True:
             window.clear()
@@ -116,7 +116,7 @@ class UIComponents:
 
             for idx, option in enumerate(options[scroll_offset:scroll_offset + max_display]):
                 y = idx + 3
-                if y >= height - 2:
+                if y >= height - 4:
                     break
 
                 if idx + scroll_offset == current_selection:
@@ -129,8 +129,17 @@ class UIComponents:
                 if idx + scroll_offset == current_selection:
                     window.attroff(curses.A_REVERSE)
 
-            window.addstr(height - 2, 2,
-                          "Use arrow keys to move, SPACE to select/deselect, ENTER to confirm, 'q' to quit")
+            # Scroll bar
+            if len(options) > max_display:
+                scroll_height = int(max_display * (max_display / len(options)))
+                scroll_pos = int((scroll_offset / len(options)) * max_display)
+                for i in range(max_display):
+                    if scroll_pos <= i < scroll_pos + scroll_height:
+                        window.addstr(i + 3, width - 2, "█")
+                    else:
+                        window.addstr(i + 3, width - 2, "│")
+
+            window.addstr(height - 3, 2, "↑↓: Navigate | SPACE: Select/Deselect | ENTER: Confirm | Q: Quit")
             window.box()
             window.refresh()
 
@@ -157,7 +166,7 @@ class UIComponents:
                 else:
                     selected_options.append(current_selection)
             elif key == ord('\n'):
-                return selected_options
+                return [options[i] for i in selected_options]
 
         return None
 

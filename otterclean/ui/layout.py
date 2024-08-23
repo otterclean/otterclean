@@ -66,13 +66,13 @@ class LayoutManager:
         self.menu_section.render()
         details = self.get_details_for_option(self.menu_section.get_selected_option())
         self.details_section.render(details)
-        self.footer_section.render("Press 'q' to quit | Arrow keys to navigate | Enter to select")
+        self.footer_section.render()
         self.stdscr.refresh()
 
     def draw_borders(self):
         self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
         self.stdscr.border()
-        self.stdscr.addstr(0, 2, " Clean My System ")
+        self.stdscr.addstr(0, 2, " Otter Clean ")
         self.stdscr.hline(1, 1, curses.ACS_HLINE, self.window_width - 2)
         self.stdscr.addstr(0, self.window_width // 3 + 2, " Operation Details ")
         self.stdscr.vline(1, self.window_width // 3, curses.ACS_VLINE, self.window_height - 3)
@@ -217,3 +217,57 @@ class LayoutManager:
         self.details_section.clear()
         return self.ui_components.select_deletion_method(self.details_section.window)
 
+    def display_operation_interface(self, title, content, footer_text):
+        self.details_section.clear()
+        max_y, max_x = self.stdscr.getmaxyx()
+        split_point = max_x // 3
+
+        # Başlık
+        self.stdscr.addstr(3, split_point + 2, title)
+
+        # İçerik
+        content_lines = content.split('\n')
+        for i, line in enumerate(content_lines):
+            if 5 + i < max_y - 3:  # Footer için yer bırakıyoruz
+                self.stdscr.addstr(5 + i, split_point + 2, line[:max_x - split_point - 4])
+
+        # Footer
+        self.stdscr.addstr(max_y - 2, split_point + 2, footer_text[:max_x - split_point - 4])
+
+        self.stdscr.refresh()
+
+    def update_footer_help_text(self, text):
+        self.footer_section.set_help_text(text)
+
+    def display_help(self):
+        help_text = """
+        OtterClean Help:
+
+        Navigation:
+        - Use Up/Down arrow keys to move between options
+        - Press Enter to select an option
+        - Press 'q' to quit the current screen or application
+
+        Options:
+        1. Comprehensive Docker Cleanup: Removes all unused Docker resources
+        2. Remove Unused Docker Images: Deletes Docker images not in use
+        3. Remove Stopped Containers: Removes inactive Docker containers
+        4. Remove Unused Docker Volumes: Deletes unused Docker volumes
+        5. Clean Docker Build Cache: Clears the Docker build cache
+        6. Clean Application Cache: Removes temporary files from applications
+        7. Clean User Logs: Deletes user-specific log files
+        8. Clean System Logs: Removes system-wide log files
+        9. Clean System Cache: Clears system-level cache files
+        10. Clean All System Caches: Removes all types of system caches
+        11. Disk Usage Analysis: Shows detailed disk space usage
+        12. Clean Selected Application Caches: Choose specific app caches to clean
+        13. Clean Browser Caches: Clears web browser caches
+        14. Secure File Deletion: Securely erases files or folders
+        15. Privacy Protection: Removes various privacy-related traces
+
+        Note: Some operations may require administrator privileges.
+        Always be cautious when deleting files or cleaning caches.
+
+        Press any key to return to the main menu.
+        """
+        self.details_section.display_scrollable_text(help_text)

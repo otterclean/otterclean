@@ -145,3 +145,6 @@ docker-compose.override.yml
 # Lock files for dependency management tools
 Pipfile.lock
 poetry.lock
+
+otterclean.log
+otterclean_output.txt
