@@ -1,8 +1,10 @@
 import curses
 from otterclean.config.settings import COLOR_SCHEME
+
+
 class ProgressBar:
-    def __init__(self, stdscr, total, y, x, width):
-        self.stdscr = stdscr
+    def __init__(self, window, total, y, x, width):
+        self.window = window
         self.total = total
         self.current_progress = 0
         self.y = y
@@ -21,20 +23,15 @@ class ProgressBar:
         bar_width = self.width - 2
         filled = int(self.current_progress / self.total * bar_width)
 
-        self.stdscr.attron(curses.color_pair(COLOR_SCHEME['default']))
-
-        # Progress bar
-        self.stdscr.addstr(self.y, self.x, "[" + "=" * filled + " " * (bar_width - filled) + "]")
-
-        # Operation name and progress percentage
         progress_text = f"{self.operation_name} - {self.current_progress}% Complete"
-        self.stdscr.addstr(self.y, self.x + 1, progress_text[:bar_width])
+        self.window.addstr(self.y, self.x, progress_text[:self.width])
 
-        # Elapsed time
+        self.window.addstr(self.y + 1, self.x, "[" + "=" * filled + " " * (bar_width - filled) + "]")
+
         time_text = f"Time: {self.elapsed_time:.1f}s"
-        self.stdscr.addstr(self.y, self.width - len(time_text) - 1, time_text)
+        self.window.addstr(self.y, self.width - len(time_text), time_text)
 
-        self.stdscr.attroff(curses.color_pair(COLOR_SCHEME['default']))
+        self.window.refresh()
 
 
 class DialogBox:

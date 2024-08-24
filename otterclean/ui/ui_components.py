@@ -1,6 +1,10 @@
 import curses
 import textwrap
 import os
+from otterclean.config import logger
+
+
+
 from otterclean.ui.file_browser import FileBrowser
 
 class UIComponents:
@@ -193,8 +197,22 @@ class UIComponents:
         window.clear()
         window.addstr(1, 2, prompt)
         window.refresh()
-        browser = FileBrowser(window.subwin(height - 4, width - 4, 2, 2))
-        return browser.run()
+
+        # Calculate safe dimensions for the subwindow
+        sub_height = max(3, height - 6)  # At least 3 rows
+        sub_width = max(20, width - 4)  # At least 20 columns
+        sub_begin_y = min(3, height - sub_height)
+        sub_begin_x = 2
+
+        try:
+            sub_win = window.derwin(sub_height, sub_width, sub_begin_y, sub_begin_x)
+            browser = FileBrowser(sub_win)
+            return browser.run()
+        except curses.error:
+            window.addstr(height - 2, 2, "Error: Window too small for file browser")
+            window.refresh()
+            window.getch()  # Wait for user input
+            return None
 
     @staticmethod
     def select_deletion_method(window):
@@ -204,9 +222,49 @@ class UIComponents:
             "DoD: 3 passes of overwriting",
             "Gutmann: 35 passes of overwriting (most secure, but very slow)"
         ]
-        options = [f"{method}: {desc}" for method, desc in zip(methods, descriptions)]
-        selected = UIComponents.select_from_options(window, options, "Select secure deletion method:")
-        return methods[options.index(selected)]
+
+        height, width = window.getmaxyx()
+        current_selection = 0
+
+        def handle_arrow_key(window):
+            key1 = window.getch()
+            key2 = window.getch()
+            if key1 == 91:
+                if key2 == 65:
+                    return curses.KEY_UP
+                elif key2 == 66:
+                    return curses.KEY_DOWN
+            return None
+
+        while True:
+            window.clear()
+            window.box()
+            window.addstr(1, 2, "Select secure deletion method:")
+
+            for idx, (method, desc) in enumerate(zip(methods, descriptions)):
+                y = idx * 2 + 3
+                marker = '[x]' if idx == current_selection else '[ ]'
+                window.addstr(y, 2, f"{marker} {method.upper()}")
+                window.addstr(y + 1, 6, desc[:width - 8])
+
+            window.addstr(height - 2, 2, "Use ↑↓ to move, ENTER to select, 'q' to cancel")
+            window.refresh()
+
+            key = window.getch()
+            logger.debug(f"Key pressed: {key}")
+
+            if key == 27:  # ESC key
+                arrow_key = handle_arrow_key(window)
+                if arrow_key == curses.KEY_UP and current_selection > 0:
+                    current_selection -= 1
+                elif arrow_key == curses.KEY_DOWN and current_selection < len(methods) - 1:
+                    current_selection += 1
+            elif key == ord('\n'):
+                return methods[current_selection]
+            elif key == ord('q'):
+                return None
+
+        return None
 
 class ProgressBar:
     def __init__(self, window, total, y, x, width):

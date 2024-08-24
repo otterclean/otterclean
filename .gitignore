@@ -146,5 +146,4 @@ docker-compose.override.yml
 Pipfile.lock
 poetry.lock
 
-otterclean.log
-otterclean_output.txt
+logs/otter_clean.log

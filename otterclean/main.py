@@ -1,5 +1,6 @@
 import curses
 import sys
+import os
 import argparse
 import logging
 from otterclean.config import LOG_FILE_PATH, APP_TITLE, APP_VERSION, init_colors, logger
@@ -119,7 +120,8 @@ def process_selected_option(layout, selected_option):
             app_caches = get_application_caches()
             layout.display_operation_interface(
                 "Clean Selected Application Caches",
-                "Listing application caches..."
+                "Listing application caches...",
+                "Use ↑↓ to navigate, SPACE to select/deselect, ENTER to confirm, Q to quit"
             )
             layout.footer_section.set_help_text("↑↓: Navigate | SPACE: Select/Deselect | ENTER: Confirm | Q: Quit")
             selected_caches = layout.display_app_caches(app_caches)
@@ -137,41 +139,53 @@ def process_selected_option(layout, selected_option):
         elif selected_option == 13:  # Secure File Deletion
             layout.display_operation_interface(
                 "Secure File Deletion",
-                "Select a file or folder to delete securely."
+                "Select a file or folder to delete securely.",
+                "Use ↑↓ to navigate, ENTER to select, Q to quit"
             )
             layout.footer_section.set_help_text("↑↓: Navigate | ENTER: Select | Q: Quit")
             file_path = layout.display_file_browser("Select file/folder to securely delete:")
+            if file_path is None:
+                logger.info("User cancelled file selection")
+                layout.footer_section.stop_progress()
+                return  # Return to main menu
             if file_path:
                 logger.info(f"Selected file/folder for secure deletion: {file_path}")
                 layout.display_operation_interface(
                     "Secure File Deletion",
-                    f"Selected: {file_path}\nChoose deletion method:"
+                    f"Selected: {file_path}\nChoose deletion method:",
+                    "Use ↑↓ to navigate, ENTER to select, Q to quit"
                 )
                 layout.footer_section.set_help_text("↑↓: Navigate | ENTER: Select | Q: Quit")
-                method = layout.display_deletion_methods()
-                if method:
-                    logger.info(f"Selected deletion method: {method}")
-                    confirm = layout.get_confirmation(
-                        f"Are you sure you want to securely delete {file_path} using {method} method?")
-                    if confirm:
-                        if os.path.isfile(file_path):
-                            for progress in secure_delete_file(file_path, method):
-                                layout.display_operation_message(progress)
-                            result = "File deletion completed"
-                        elif os.path.isdir(file_path):
-                            for progress in secure_delete_folder(file_path, method):
-                                layout.display_operation_message(progress)
-                            result = "Folder deletion completed"
-                        else:
-                            result = "Invalid path"
-                        logger.info(result)
-                        layout.display_result(result)
+                method = layout.select_deletion_method()
+                if method is None:
+                    logger.info("User cancelled deletion method selection")
+                    layout.footer_section.stop_progress()
+                    return  # Return to main menu
+                logger.info(f"Selected deletion method: {method}")
+                confirm = layout.get_confirmation(
+                    f"Are you sure you want to securely delete {file_path} using {method} method?")
+                if confirm:
+                    if os.path.isfile(file_path):
+                        layout.footer_section.start_progress()
+                        for progress, percentage in secure_delete_file(file_path, method):
+                            layout.display_operation_message(progress)
+                            layout.footer_section.update_progress(percentage, "Secure File Deletion", 0)
+                        layout.footer_section.stop_progress()
+                        result = "File deletion completed"
+                    elif os.path.isdir(file_path):
+                        layout.footer_section.start_progress()
+                        for progress, percentage in secure_delete_folder(file_path, method):
+                            layout.display_operation_message(progress)
+                            layout.footer_section.update_progress(percentage, "Secure Folder Deletion", 0)
+                        layout.footer_section.stop_progress()
+                        result = "Folder deletion completed"
                     else:
-                        logger.info("User cancelled secure deletion")
-                        layout.display_operation_message("Operation cancelled")
+                        result = "Invalid path"
+                    logger.info(result)
+                    layout.display_result(result)
                 else:
-                    logger.info("No deletion method selected")
-                    layout.display_operation_message("No deletion method selected")
+                    logger.info("User cancelled secure deletion")
+                    layout.display_operation_message("Operation cancelled")
             else:
                 logger.info("No file/folder selected for secure deletion")
                 layout.display_operation_message("No file/folder selected")
@@ -233,9 +247,16 @@ def perform_operation(selected_option, layout):
         elif selected_option == 10:
             logger.info("Performing disk usage analysis")
             result = analyze_disk_usage([os.path.expanduser('~')])
-        elif selected_option == 12:
+        elif selected_option == 12:  # Clean Browser Caches
             logger.info("Cleaning browser caches")
-            result = clean_browser_caches()
+            layout.display_operation_interface(
+                "Clean Browser Caches",
+                "Select browser caches to clean:",
+                "Use ↑↓ to navigate, SPACE to select/deselect, ENTER to confirm, Q to quit"
+            )
+            result = layout.display_browser_cache_selection()
+            if result:
+                layout.display_result(result)
         elif selected_option == 14:  # Privacy Protection
             logger.info("Starting privacy protection")
             privacy_options = get_privacy_options()
