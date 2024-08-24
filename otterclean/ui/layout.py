@@ -1,6 +1,9 @@
 import curses
 import os
 import textwrap
+
+from otterclean.features.browser_cleanup import get_browser_caches, clean_browser_caches
+from otterclean.features.secure_delete import secure_delete_file
 from otterclean.ui.sections.menu_section import MenuSection
 from otterclean.ui.sections.details_section import DetailsSection
 from otterclean.ui.sections.footer_section import FooterSection
@@ -141,8 +144,84 @@ class LayoutManager:
         self.ui_components.display_error(self.details_section.window, error_message)
 
     def display_file_browser(self, prompt):
-        self.details_section.clear()
-        return self.ui_components.get_file_or_folder(self.details_section.window, prompt)
+        current_path = os.path.expanduser("~")
+        current_selection = 0
+        scroll_offset = 0
+
+        while True:
+            self.stdscr.clear()
+            self.draw_borders()
+            self.menu_section.render()
+
+            max_y, max_x = self.stdscr.getmaxyx()
+            split_point = max_x // 3
+            details_height = max_y - 5
+            max_display = details_height - 2
+
+            self.stdscr.addstr(3, split_point + 2, prompt)
+            self.stdscr.addstr(4, split_point + 2, f"Current path: {current_path}")
+
+            items = [".."] + sorted([f for f in os.listdir(current_path) if not f.startswith('.')])
+            visible_items = min(max_display, len(items))
+            end_index = min(scroll_offset + visible_items, len(items))
+
+            for i, item in enumerate(items[scroll_offset:end_index], start=scroll_offset):
+                y = i - scroll_offset + 5
+                if i == current_selection:
+                    self.stdscr.attron(curses.A_REVERSE)
+
+                item_path = os.path.join(current_path, item)
+                if os.path.isdir(item_path):
+                    display_text = f"[DIR] {item}"
+                else:
+                    display_text = f"[FILE] {item}"
+
+                self.stdscr.addstr(y, split_point + 2, display_text[:max_x - split_point - 4])
+
+                if i == current_selection:
+                    self.stdscr.attroff(curses.A_REVERSE)
+
+            if len(items) > visible_items:
+                scrollbar_height = int(visible_items * (visible_items / len(items)))
+                scrollbar_pos = int((scroll_offset / len(items)) * visible_items)
+                for i in range(visible_items):
+                    if scrollbar_pos <= i < scrollbar_pos + scrollbar_height:
+                        self.stdscr.addstr(i + 5, max_x - 1, "█")
+                    else:
+                        self.stdscr.addstr(i + 5, max_x - 1, "│")
+
+            self.stdscr.addstr(max_y - 2, split_point + 2,
+                               "Use ↑↓ to move, ENTER to select/enter directory, 'q' to quit")
+
+            self.stdscr.refresh()
+
+            key = self.stdscr.getch()
+            if key == ord('q'):
+                return None
+            elif key == curses.KEY_UP:
+                if current_selection > 0:
+                    current_selection -= 1
+                    if current_selection < scroll_offset:
+                        scroll_offset = max(0, scroll_offset - 1)
+            elif key == curses.KEY_DOWN:
+                if current_selection < len(items) - 1:
+                    current_selection += 1
+                    if current_selection >= scroll_offset + visible_items:
+                        scroll_offset = min(len(items) - visible_items, scroll_offset + 1)
+            elif key == ord('\n'):  # Enter key
+                selected = items[current_selection]
+                if selected == "..":
+                    current_path = os.path.dirname(current_path)
+                else:
+                    new_path = os.path.join(current_path, selected)
+                    if os.path.isdir(new_path):
+                        current_path = new_path
+                    else:
+                        return new_path  # Return the selected file path
+                current_selection = 0
+                scroll_offset = 0
+
+        return None
 
     def display_app_caches(self, app_caches):
         selected_options = []
@@ -222,10 +301,10 @@ class LayoutManager:
         max_y, max_x = self.stdscr.getmaxyx()
         split_point = max_x // 3
 
-        # Başlık
+        # Title
         self.stdscr.addstr(3, split_point + 2, title)
 
-        # İçerik
+        # Description
         content_lines = content.split('\n')
         for i, line in enumerate(content_lines):
             if 5 + i < max_y - 3:  # Footer için yer bırakıyoruz
@@ -271,3 +350,35 @@ class LayoutManager:
         Press any key to return to the main menu.
         """
         self.details_section.display_scrollable_text(help_text)
+
+    def display_browser_cache_selection(self):
+        browser_caches = get_browser_caches()
+        options = [f"{browser} (Estimated size: {clean_func()[1]})" for browser, clean_func in browser_caches]
+
+        selected_options = self.ui_components.select_multiple_options(
+            self.details_section.window,
+            options,
+            "Select browser caches to clean:"
+        )
+
+        if selected_options:
+            selected_browsers = [browser_caches[i][0] for i in selected_options]
+            confirm = self.get_confirmation(f"Are you sure you want to clean the selected browser caches?")
+            if confirm:
+                result = clean_browser_caches(selected_browsers)
+                return result  # Return the result
+            else:
+                self.display_operation_message("Operation cancelled.")
+                return "Operation cancelled."
+        else:
+            self.display_operation_message("No browser caches selected for cleaning.")
+            return "No browser caches selected for cleaning."
+
+
+    def perform_secure_delete(self, file_path, method):
+        total_progress = 100
+        for message, progress in secure_delete_file(file_path, method):
+            self.footer_section.update_progress(progress, "Secure File Deletion", 0)  # Elapsed time is not calculated here
+            self.display_operation_message(message)
+        self.footer_section.stop_progress()
+        return "File deletion completed"

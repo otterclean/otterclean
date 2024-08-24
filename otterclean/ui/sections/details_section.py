@@ -58,3 +58,23 @@ class DetailsSection:
                 current_line += 1
             elif key in [ord('q'), ord('Q'), 27]:  # Exit on 'q', 'Q', or ESC
                 break
+
+    def display_operation_message(self, message):
+        self.window.clear()
+        height, width = self.window.getmaxyx()
+        wrapped_message = textwrap.wrap(message, width - 4)
+        for idx, line in enumerate(wrapped_message):
+            if idx < height - 2:
+                self.window.addstr(idx + 1, 2, line)
+        self.window.box()
+        self.window.refresh()
+
+    def display_result(self, result):
+        self.window.clear()
+        height, width = self.window.getmaxyx()
+        wrapped_result = textwrap.wrap(result, width - 4)
+        for idx, line in enumerate(wrapped_result):
+            if idx < height - 2:
+                self.window.addstr(idx + 1, 2, line)
+        self.window.box()
+        self.window.refresh()

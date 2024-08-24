@@ -1,7 +1,6 @@
 import os
 import curses
 
-
 class FileBrowser:
     def __init__(self, window):
         self.window = window
