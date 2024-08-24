@@ -1,6 +1,22 @@
-# OtterClean
+<p align="center">
+  <p align="center">
+    <img src="https://github.com/user-attachments/assets/e563a3d5-ea1a-46b0-b20f-26c24acbc6cd" alt="OtterClean" width="100" height="100" />
+  </p>
+  <p align="center">
+    Clean your system with the precision of an otter and the power of Python.
+  </p>
+</p>
+
+# What's OtterClean?
 
 OtterClean is an open-source, terminal-based system cleanup and optimization tool designed for command-line enthusiasts. It provides a user-friendly Terminal User Interface (TUI) for various system maintenance tasks, including Docker management, cache cleaning, and disk usage analysis.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/8f635f88-c3f0-423c-9386-ff9c42bc5951" width="270" />
+  <img src="https://github.com/user-attachments/assets/8f635f88-c3f0-423c-9386-ff9c42bc5951" width="270" />
+  <img src="https://github.com/user-attachments/assets/8f635f88-c3f0-423c-9386-ff9c42bc5951" width="270" />
+  <img src="https://github.com/user-attachments/assets/8f635f88-c3f0-423c-9386-ff9c42bc5951" width="270" />
+</p>
 
 ## Features
 
@@ -10,35 +26,53 @@ OtterClean is an open-source, terminal-based system cleanup and optimization too
 - Log file management
 - Disk usage analysis
 - User-friendly Terminal User Interface (TUI)
+- Verbose mode for detailed operation information
+- Logging system for tracking operations and errors
 
 ## Project Structure
 
 ```
 otterclean/
-├── main.py                    # Main entry point
+├── requirements.txt           # List of project dependencies
+├── setup.py                   # Script for installing the project
+└── otterclean/
+├── init.py            # Package initialization
+├── main.py                # Main entry point of the application
+├── version.py             # Version information
 ├── config/
-│   ├── colors.py              # Color palettes and themes
-│   └── settings.py            # Application settings and constants
-├── ui/
-│   ├── __init__.py
-│   ├── menu.py                # Menu rendering and management
-│   ├── details.py             # Displaying details of selected items
-│   ├── components.py          # Custom UI components (e.g., progress bar, dialogs)
-│   └── layout.py              # Layout management
+│   ├── init.py        # Config package initialization
+│   ├── colors.py          # Color definitions for UI
+│   └── settings.py        # Application settings and constants
 ├── features/
-│   ├── __init__.py
-│   ├── cleanup.py             # System cleanup functions
-│   ├── analysis.py            # Disk analysis and other analytical functions
-│   ├── docker_management.py   # Docker-related cleanup and management
-│   └── system.py              # General system-related functions
-├── utils/
-│   ├── __init__.py
-│   ├── file_system.py         # File and directory operations
-│   ├── command_runner.py      # Helper functions for running shell commands
-│   └── progress.py            # Progress bars and loading animations
-└── assets/
-    ├── icons/                 # Icons or ASCII art for UI
-    └── fonts/                 # Custom font files (if terminal supports)
+│   ├── init.py        # Features package initialization
+│   ├── analysis.py        # Disk usage analysis functions
+│   ├── browser_cleanup.py # Browser cache cleaning functions
+│   ├── cleanup.py         # General cleanup functions
+│   ├── command_line_support.py  # CLI support functions
+│   ├── docker_management.py     # Docker-related cleanup functions
+│   ├── privacy_protection.py    # Privacy protection features
+│   ├── reporting.py       # Report generation functions
+│   ├── secure_delete.py   # Secure file deletion functions
+│   └── system.py          # System-related cleanup functions
+├── logs/                  # Directory for storing log files
+├── tests/                 # Directory for unit tests
+├── ui/
+│   ├── init.py        # UI package initialization
+│   ├── components.py      # Reusable UI components
+│   ├── details.py         # Details display functionality
+│   ├── file_browser.py    # File browser implementation
+│   ├── layout.py          # Overall UI layout management
+│   ├── menu.py            # Menu implementation
+│   ├── ui_components.py   # Additional UI components
+│   └── sections/
+│       ├── details_section.py   # Details section of the UI
+│       ├── footer_section.py    # Footer section of the UI
+│       └── menu_section.py      # Menu section of the UI
+└── utils/
+├── init.py        # Utils package initialization
+├── command_runner.py  # Utility for running system commands
+├── file_system.py     # File system utility functions
+└── progress.py        # Progress bar implementations
 ```
 
 ## Prerequisites
@@ -80,6 +114,16 @@ otterclean
 
 Use the arrow keys to navigate the menu and press Enter to select an option.
 
+### Command-line Options
+
+- `-v` or `--verbose`: Enable verbose mode for detailed operation information
+- `-h` or `--help`: Display help information and available command-line options
+
+Example:
+```bash
+otterclean --verbose
+```
+
 ## Available Options
 
 1. Comprehensive Docker Cleanup
@@ -96,6 +140,15 @@ Use the arrow keys to navigate the menu and press Enter to select an option.
 12. Clean Selected Application Caches
 13. Privacy Protection
 14. Exit
+
+## Logging
+
+OtterClean now includes a logging system that records important events and errors during operation. Log files are stored in the `logs` directory within the project folder. The default log file is named `otter_clean.log`.
+
+To view the logs:
+```bash
+cat logs/otter_clean.log
+```
 
 ## Contributing
 
