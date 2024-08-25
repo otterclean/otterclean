@@ -4,9 +4,7 @@ import textwrap
 
 from otterclean.features.browser_cleanup import get_browser_caches, clean_browser_caches
 from otterclean.features.secure_delete import secure_delete_file
-from otterclean.ui.sections.menu_section import MenuSection
-from otterclean.ui.sections.details_section import DetailsSection
-from otterclean.ui.sections.footer_section import FooterSection
+from otterclean.ui.sections import MenuSection, DetailsSection, FooterSection
 from otterclean.ui.ui_components import UIComponents
 from otterclean.ui.file_browser import FileBrowser
 from otterclean.config.settings import MIN_TERMINAL_WIDTH, MIN_TERMINAL_HEIGHT, COLOR_SCHEME
